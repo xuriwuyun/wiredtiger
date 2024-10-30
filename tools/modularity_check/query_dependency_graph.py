@@ -113,6 +113,76 @@ def privacy_report_structs(graph, module, all_structs, ambiguous_fields) -> (int
 
     return (num_private_fields, num_total_fields)
 
+import matplotlib.pyplot as plt
+def print_graph(module, graph):
+
+    incoming_edges = graph.in_edges(module)
+    outgoing_edges = graph.out_edges(module)
+
+    other_nodes = set()
+
+    for (inn, _) in incoming_edges:
+        other_nodes.add(inn)
+
+    for (_, out) in outgoing_edges:
+        other_nodes.add(out)
+
+    foo = graph.copy()
+
+    for node in graph.nodes():
+        if node not in other_nodes and node != module:
+            foo.remove_node(node)
+
+    foo.remove_node("Ambiguous linking or parsing failed")
+    foo.remove_node("include")
+    # Hack
+    foo.remove_node("session")
+    foo.remove_node("conn")
+    foo.remove_node("os_layer")
+    foo.remove_node("support")
+
+
+    for node in foo.nodes():
+        for node2 in foo.nodes():
+            if module == node or module == node2:
+                continue
+
+            # Remove links that don't produce a cycle with module
+            if foo.has_edge(node, node2) and not (foo.has_edge(module, node) and foo.has_edge(node2, module)):
+                foo.remove_edge(node, node2)
+                # print("removed ", node, node2)
+
+            if foo.has_edge(node2, node) and not (foo.has_edge(module, node2) and foo.has_edge(node, module)):
+                foo.remove_edge(node2, node)
+
+
+    # Get all simple cycles in the graph
+    all_cycles = list(nx.simple_cycles(foo))
+
+    # Filter cycles that are of length 3 and include the specific node
+    example_cycle = []
+    for cycle in all_cycles:
+        if len(cycle) == 3 and module in cycle:
+            example_cycle = cycle
+            break
+
+    edge_colors = []
+    for u, v in foo.edges():
+        if (u in example_cycle and v in example_cycle) and (foo.has_edge(u, v) or foo.has_edge(v, u)):  # Check if the reverse edge exists
+            edge_colors.append('red')  # Color for bidirectional edges
+        else:
+            edge_colors.append('none')
+
+    # Center on node
+    pos = nx.circular_layout(foo)
+
+    # Draw the graph
+    plt.figure(figsize=(8, 6))
+    nx.draw(foo, pos, edge_color=edge_colors, with_labels=True, node_color='lightblue', node_size=2000, font_size=16, font_color='black', font_weight='bold')
+
+    # Save the graph as an SVG file
+    plt.savefig("graph.svg", format="svg")
+
 # Report which structs and struct fields are private to the module
 def privacy_report(module, graph, parsed_files: List[File], ambiguous_fields: Set[str]):
 

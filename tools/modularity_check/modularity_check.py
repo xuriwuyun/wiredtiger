@@ -8,7 +8,7 @@ import networkx as nx
 
 from parse_wt_ast import parse_wiredtiger_files
 from build_dependency_graph import build_graph
-from query_dependency_graph import who_uses, who_is_used_by, explain_cycle, privacy_report, generate_dependency_file
+from query_dependency_graph import who_uses, who_is_used_by, explain_cycle, privacy_report, generate_dependency_file, print_graph
 
 def parse_args():
     parser = argparse.ArgumentParser(description="TODO")
@@ -17,6 +17,9 @@ def parse_args():
 
     who_uses_parser = subparsers.add_parser('who_uses', help='Who uses this module?')
     who_uses_parser.add_argument('module', type=str, help='module name')
+
+    print_graph_parser = subparsers.add_parser('print_graph', help='')
+    print_graph_parser.add_argument('module', type=str, help='module name')
 
     who_is_used_by_parser = subparsers.add_parser(
         'who_is_used_by', help='Who this module is used by')
@@ -49,6 +52,8 @@ def main():
         who_uses(args.module, graph)
     elif args.command == "who_is_used_by":
         who_is_used_by(args.module, graph)
+    elif args.command == "print_graph":
+        print_graph(args.module, graph)
     elif args.command == "list_cycles":
         # Report the smallest cycles last so they're more visible
         for c in sorted(nx.simple_cycles(graph, length_bound=3), key=lambda x: -len(x)):
