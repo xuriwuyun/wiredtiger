@@ -10,7 +10,7 @@
  * [extent_list]: block_ext.c
  * Test extent list functions part 3.
  *
- * Test extent list search functions: __block_off_srch_pair, and __block_off_match which is
+ * Test extent list search functions: __wt_extlist_off_srch_pair, and __block_off_match which is
  * HAVE_DIAGNOSTIC only except for unit tests.
  */
 
@@ -63,7 +63,9 @@ TEST_CASE("Extent Lists: block_off_srch_pair", "[extent_list]")
         WT_EXT dummy;
         for (const wt_off_t &test : test_list) {
             INFO("Search: off " << test);
-            /* Set to an invalid value to determine whether __block_off_srch_pair changed them. */
+            /*
+             * Set to an invalid value to determine whether __wt_extlist_off_srch_pair changed them.
+             */
             WT_EXT *before = &dummy;
             WT_EXT *after = &dummy;
             /* Call. */

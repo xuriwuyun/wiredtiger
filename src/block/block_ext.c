@@ -29,42 +29,6 @@ static int __block_extlist_dump(WT_SESSION_IMPL *, WT_BLOCK *, WT_EXTLIST *, con
 static int __block_merge(WT_SESSION_IMPL *, WT_BLOCK *, WT_EXTLIST *, wt_off_t, wt_off_t);
 
 /*
- * __block_off_srch_pair --
- *     Search a by-offset skiplist for before/after records of the specified offset.
- */
-static WT_INLINE void
-__block_off_srch_pair(WT_EXTLIST *el, wt_off_t off, WT_EXT **beforep, WT_EXT **afterp)
-{
-    WT_EXT **extp, **head;
-    int i;
-
-    *beforep = *afterp = NULL;
-
-    head = el->off;
-
-    /*
-     * Start at the highest skip level, then go as far as possible at each level before stepping
-     * down to the next.
-     */
-    for (i = WT_SKIP_MAXDEPTH - 1, extp = &head[i]; i >= 0;) {
-        if (*extp == NULL) {
-            --i;
-            --extp;
-            continue;
-        }
-
-        if ((*extp)->off < off) { /* Keep going at this level */
-            *beforep = *extp;
-            extp = &(*extp)->next[i];
-        } else { /* Drop down a level */
-            *afterp = *extp;
-            --i;
-            --extp;
-        }
-    }
-}
-
-/*
  * __block_ext_insert --
  *     Insert an extent into an extent list.
  */
@@ -150,7 +114,7 @@ __wt_block_off_srch_inclusive(WT_EXTLIST *el, wt_off_t off)
 {
     WT_EXT *after, *before;
 
-    __block_off_srch_pair(el, off, &before, &after);
+    __wt_extlist_off_srch_pair(el, off, &before, &after);
 
     /* Check if the search key is in the before extent. Otherwise return the after extent. */
     if (before != NULL && before->off <= off && before->off + before->size > off)
@@ -173,7 +137,7 @@ __block_off_match(WT_EXTLIST *el, wt_off_t off, wt_off_t size)
         return (false);
 
     /* Search for before and after entries for the offset. */
-    __block_off_srch_pair(el, off, &before, &after);
+    __wt_extlist_off_srch_pair(el, off, &before, &after);
 
     /* If "before" or "after" overlaps, we have a winner. */
     if (before != NULL && before->off + before->size > off)
@@ -315,7 +279,7 @@ __wti_block_off_remove_overlap(
     WT_ASSERT(session, off != WT_BLOCK_INVALID_OFFSET);
 
     /* Search for before and after entries for the offset. */
-    __block_off_srch_pair(el, off, &before, &after);
+    __wt_extlist_off_srch_pair(el, off, &before, &after);
 
     /* If "before" or "after" overlaps, retrieve the overlapping entry. */
     if (before != NULL && before->off + before->size > off) {
@@ -968,7 +932,7 @@ __block_merge(
      * Retrieve the records preceding/following the offset. If the records are contiguous with the
      * free'd offset, combine records.
      */
-    __block_off_srch_pair(el, off, &before, &after);
+    __wt_extlist_off_srch_pair(el, off, &before, &after);
     if (before != NULL) {
         if (before->off + before->size > off)
             WT_BLOCK_RET(session, block, EINVAL,
@@ -1410,7 +1374,7 @@ __ut_block_size_srch(WT_SIZE **head, wt_off_t size, WT_SIZE ***stack)
 void
 __ut_block_off_srch_pair(WT_EXTLIST *el, wt_off_t off, WT_EXT **beforep, WT_EXT **afterp)
 {
-    __block_off_srch_pair(el, off, beforep, afterp);
+    __wt_extlist_off_srch_pair(el, off, beforep, afterp);
 }
 
 int

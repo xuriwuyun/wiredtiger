@@ -111,3 +111,39 @@ __wt_extlist_size_srch(WT_SIZE **head, wt_off_t size, WT_SIZE ***stack)
         else
             stack[i--] = szp--;
 }
+
+/*
+ * __wt_extlist_off_srch_pair --
+ *     Search a by-offset skiplist for before/after records of the specified offset.
+ */
+void
+__wt_extlist_off_srch_pair(WT_EXTLIST *el, wt_off_t off, WT_EXT **beforep, WT_EXT **afterp)
+{
+    WT_EXT **extp, **head;
+    int i;
+
+    *beforep = *afterp = NULL;
+
+    head = el->off;
+
+    /*
+     * Start at the highest skip level, then go as far as possible at each level before stepping
+     * down to the next.
+     */
+    for (i = WT_SKIP_MAXDEPTH - 1, extp = &head[i]; i >= 0;) {
+        if (*extp == NULL) {
+            --i;
+            --extp;
+            continue;
+        }
+
+        if ((*extp)->off < off) { /* Keep going at this level */
+            *beforep = *extp;
+            extp = &(*extp)->next[i];
+        } else { /* Drop down a level */
+            *afterp = *extp;
+            --i;
+            --extp;
+        }
+    }
+}
