@@ -229,11 +229,11 @@ __block_ext_insert(WT_SESSION_IMPL *session, WT_EXTLIST *el, WT_EXT *ext)
 }
 
 /*
- * __block_off_insert --
+ * __wt_block_off_insert --
  *     Insert a file range into an extent list.
  */
-static int
-__block_off_insert(WT_SESSION_IMPL *session, WT_EXTLIST *el, wt_off_t off, wt_off_t size)
+int
+__wt_block_off_insert(WT_SESSION_IMPL *session, WT_EXTLIST *el, wt_off_t off, wt_off_t size)
 {
     WT_EXT *ext;
 
@@ -406,6 +406,32 @@ corrupt:
 }
 
 /*
+ * __wt_block_el_contains_range --
+ *     Determine if a range is present in the extent list. The range must be entirely contained by a
+ *     single entry.
+ */
+bool
+__wt_block_el_contains_range(WT_SESSION_IMPL *session, WT_EXTLIST *el, wt_off_t off, wt_off_t size)
+{
+    WT_EXT *after, *before;
+
+    WT_UNUSED(session);
+
+    /* Search for before and after entries for the offset. */
+    __block_off_srch_pair(el, off, &before, &after);
+
+    // FIXME - error checking for partial matches
+    if (before != NULL && before->off <= off && before->off + before->size >= off + size) {
+        return (true);
+    }
+
+    if (after != NULL && after->off <= off && after->off + after->size >= off + size) {
+        return (true);
+    }
+    return (false);
+}
+
+/*
  * __wti_block_off_remove_overlap --
  *     Remove a range from an extent list, where the range may be part of an overlapping entry.
  */
@@ -416,7 +442,8 @@ __wti_block_off_remove_overlap(
     WT_EXT *after, *before, *ext;
     wt_off_t a_off, a_size, b_off, b_size;
 
-    WT_ASSERT(session, off != WT_BLOCK_INVALID_OFFSET);
+    // FIXME WT_BLOCK_INVALID_OFFSET == 0. unionFS allows this but block manager
+    // WT_ASSERT(session, off != WT_BLOCK_INVALID_OFFSET);
 
     /* Search for before and after entries for the offset. */
     __block_off_srch_pair(el, off, &before, &after);
@@ -481,7 +508,7 @@ __wti_block_off_remove_overlap(
     }
     if (b_size > 0) {
         if (ext == NULL)
-            WT_RET(__block_off_insert(session, el, b_off, b_size));
+            WT_RET(__wt_block_off_insert(session, el, b_off, b_size));
         else {
             ext->off = b_off;
             ext->size = b_size;
@@ -1098,7 +1125,7 @@ __block_merge(
         __wt_verbose_debug2(session, WT_VERB_BLOCK, "%s: insert range %" PRIdMAX "-%" PRIdMAX,
           el->name, (intmax_t)off, (intmax_t)(off + size));
 
-        return (__block_off_insert(session, el, off, size));
+        return (__wt_block_off_insert(session, el, off, size));
     }
 
     /*
@@ -1509,7 +1536,7 @@ __ut_block_ext_insert(WT_SESSION_IMPL *session, WT_EXTLIST *el, WT_EXT *ext)
 int
 __ut_block_off_insert(WT_SESSION_IMPL *session, WT_EXTLIST *el, wt_off_t off, wt_off_t size)
 {
-    return (__block_off_insert(session, el, off, size));
+    return (__wt_block_off_insert(session, el, off, size));
 }
 
 bool
