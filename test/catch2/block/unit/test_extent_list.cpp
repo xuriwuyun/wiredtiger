@@ -10,7 +10,7 @@
 
 /*
  * block_ext.c: [extent_list] Test extent list search functions: __wt_extlist_off_srch_last,
- * __wt_extlist_off_srch, __block_first_srch, and __block_size_srch.
+ * __wt_extlist_off_srch, __wt_extlist_first_srch, and __block_size_srch.
  */
 
 #include <memory>
@@ -311,8 +311,8 @@ TEST_CASE("Extent Lists: block_first_srch", "[extent_list]")
     std::vector<WT_EXT **> stack(WT_SKIP_MAXDEPTH, nullptr);
 
     /*
-     * Note that we're not checking stack here, since __block_first_srch delegates most of its work
-     * to __wt_extlist_off_srch, which we're testing elsewhere.
+     * Note that we're not checking stack here, since __wt_extlist_first_srch delegates most of its
+     * work to __wt_extlist_off_srch, which we're testing elsewhere.
      */
 
     SECTION("empty list doesn't yield a chunk")

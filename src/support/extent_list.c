@@ -65,3 +65,26 @@ __wt_extlist_off_srch(WT_EXT **head, wt_off_t off, WT_EXT ***stack, bool skip_of
         else
             stack[i--] = extp--;
 }
+
+/*
+ * __wt_extlist_first_srch --
+ *     Search the skiplist for the first available slot.
+ */
+bool
+__wt_extlist_first_srch(WT_EXT **head, wt_off_t size, WT_EXT ***stack)
+{
+    WT_EXT *ext;
+
+    /*
+     * Linear walk of the available chunks in offset order; take the first one that's large enough.
+     */
+    WT_EXT_FOREACH (ext, head)
+        if (ext->size >= size)
+            break;
+    if (ext == NULL)
+        return (false);
+
+    /* Build a stack for the offset we want. */
+    __wt_extlist_off_srch(head, ext->off, stack, false);
+    return (true);
+}

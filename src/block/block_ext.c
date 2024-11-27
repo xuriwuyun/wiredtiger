@@ -29,29 +29,6 @@ static int __block_extlist_dump(WT_SESSION_IMPL *, WT_BLOCK *, WT_EXTLIST *, con
 static int __block_merge(WT_SESSION_IMPL *, WT_BLOCK *, WT_EXTLIST *, wt_off_t, wt_off_t);
 
 /*
- * __block_first_srch --
- *     Search the skiplist for the first available slot.
- */
-static WT_INLINE bool
-__block_first_srch(WT_EXT **head, wt_off_t size, WT_EXT ***stack)
-{
-    WT_EXT *ext;
-
-    /*
-     * Linear walk of the available chunks in offset order; take the first one that's large enough.
-     */
-    WT_EXT_FOREACH (ext, head)
-        if (ext->size >= size)
-            break;
-    if (ext == NULL)
-        return (false);
-
-    /* Build a stack for the offset we want. */
-    __wt_extlist_off_srch(head, ext->off, stack, false);
-    return (true);
-}
-
-/*
  * __block_size_srch --
  *     Search the by-size skiplist for the specified size.
  */
@@ -512,7 +489,7 @@ __wti_block_alloc(WT_SESSION_IMPL *session, WT_BLOCK *block, wt_off_t *offp, wt_
     if (block->live.avail.bytes < (uint64_t)size)
         goto append;
     if (block->allocfirst) {
-        if (!__block_first_srch(block->live.avail.off, size, estack))
+        if (!__wt_extlist_first_srch(block->live.avail.off, size, estack))
             goto append;
         ext = *estack[0];
     } else {
@@ -1444,7 +1421,7 @@ __ut_block_off_srch(WT_EXT **head, wt_off_t off, WT_EXT ***stack, bool skip_off)
 bool
 __ut_block_first_srch(WT_EXT **head, wt_off_t size, WT_EXT ***stack)
 {
-    return (__block_first_srch(head, size, stack));
+    return (__wt_extlist_first_srch(head, size, stack));
 }
 
 void
