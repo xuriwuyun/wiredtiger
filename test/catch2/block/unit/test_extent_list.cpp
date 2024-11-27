@@ -6,8 +6,10 @@
  * See the file LICENSE for redistribution information.
  */
 
+/* FIXME-WT-13797 - Move unit tests out of block and into support/extlist */
+
 /*
- * block_ext.c: [extent_list] Test extent list search functions: __block_off_srch_last,
+ * block_ext.c: [extent_list] Test extent list search functions: __wt_extlist_off_srch_last,
  * __block_off_srch, __block_first_srch, and __block_size_srch.
  */
 
@@ -160,7 +162,7 @@ TEST_CASE("Extent Lists: block_off_srch_last", "[extent_list]")
         for (int i = 1; i < WT_SKIP_MAXDEPTH; i++)
             head.push_back(nullptr);
 
-        REQUIRE(__ut_block_off_srch_last(&head[0], &stack[0]) == head[0]);
+        REQUIRE(__wt_extlist_off_srch_last(&head[0], &stack[0]) == head[0]);
     }
 
     SECTION("list with identical skip entries returns identical stack entries")
@@ -172,7 +174,7 @@ TEST_CASE("Extent Lists: block_off_srch_last", "[extent_list]")
         for (int i = 0; i < WT_SKIP_MAXDEPTH; i++)
             head.push_back(first->_raw);
 
-        WT_IGNORE_RET(__ut_block_off_srch_last(&head[0], &stack[0]));
+        WT_IGNORE_RET(__wt_extlist_off_srch_last(&head[0], &stack[0]));
 
         for (int i = 0; i < WT_SKIP_MAXDEPTH; i++) {
             REQUIRE(stack[i] == &head[i]->next[i]);
@@ -186,7 +188,7 @@ TEST_CASE("Extent Lists: block_off_srch_last", "[extent_list]")
 
         create_default_test_extent_list(wrapper);
 
-        WT_IGNORE_RET(__ut_block_off_srch_last(&head[0], &stack[0]));
+        WT_IGNORE_RET(__wt_extlist_off_srch_last(&head[0], &stack[0]));
 
         REQUIRE(stack[0] == &head[2]->next[0]);
         REQUIRE(stack[1] == &head[2]->next[1]);
@@ -209,7 +211,7 @@ TEST_CASE("Extent Lists: block_off_srch_last", "[extent_list]")
         for (int i = 1; i < WT_SKIP_MAXDEPTH; i++)
             head.push_back(second->_raw);
 
-        REQUIRE(__ut_block_off_srch_last(&head[0], &stack[0]) == second->_raw);
+        REQUIRE(__wt_extlist_off_srch_last(&head[0], &stack[0]) == second->_raw);
     }
 }
 

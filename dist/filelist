@@ -217,6 +217,7 @@ src/rollback_to_stable/rts_visibility.c
 src/support/cond_auto.c
 src/support/crypto.c
 src/support/err.c
+src/support/extent_list.c
 src/support/generation.c
 src/support/global.c
 src/support/hash_city.c

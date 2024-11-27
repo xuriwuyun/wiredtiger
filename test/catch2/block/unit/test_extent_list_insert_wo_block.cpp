@@ -48,7 +48,7 @@ TEST_CASE("Extent Lists: block_ext_insert", "[extent_list]")
         extlist_print_off(extlist);
 
         /* Verify. */
-        REQUIRE(__ut_block_off_srch_last(&extlist.off[0], &stack[0]) == extlist.off[0]);
+        REQUIRE(__wt_extlist_off_srch_last(&extlist.off[0], &stack[0]) == extlist.off[0]);
     }
 
     SECTION("insert multiple extents and retrieve in correct order")
@@ -116,7 +116,7 @@ TEST_CASE("Extent Lists: block_off_insert", "[extent_list]")
         extlist_print_off(extlist);
 
         /* Verify. */
-        REQUIRE(__ut_block_off_srch_last(&extlist.off[0], &stack[0]) == extlist.off[0]);
+        REQUIRE(__wt_extlist_off_srch_last(&extlist.off[0], &stack[0]) == extlist.off[0]);
     }
 
     SECTION("insert multiple extents and retrieve in correct order")

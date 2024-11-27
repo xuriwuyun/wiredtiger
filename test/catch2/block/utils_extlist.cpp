@@ -207,15 +207,16 @@ extlist_free(WT_SESSION_IMPL *session, WT_EXTLIST &extlist)
 
 /*!
  * verify_empty_extent_list --
- *     Verify an extent list is empty. This was derived from the tests for __block_off_srch_last.
+ *     Verify an extent list is empty. This was derived from the tests for
+ * __wt_extlist_off_srch_last.
  *
  * @param head the extlist
- * @param stack the stack for appending returned by __block_off_srch_last
+ * @param stack the stack for appending returned by __wt_extlist_off_srch_last
  */
 void
 verify_empty_extent_list(WT_EXT **head, WT_EXT ***stack)
 {
-    REQUIRE(__ut_block_off_srch_last(&head[0], &stack[0]) == nullptr);
+    REQUIRE(__wt_extlist_off_srch_last(&head[0], &stack[0]) == nullptr);
     for (int i = 0; i < WT_SKIP_MAXDEPTH; i++) {
         REQUIRE(stack[i] == &head[i]);
     }

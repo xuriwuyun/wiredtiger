@@ -29,36 +29,6 @@ static int __block_extlist_dump(WT_SESSION_IMPL *, WT_BLOCK *, WT_EXTLIST *, con
 static int __block_merge(WT_SESSION_IMPL *, WT_BLOCK *, WT_EXTLIST *, wt_off_t, wt_off_t);
 
 /*
- * __block_off_srch_last --
- *     Return the last element in the list, along with a stack for appending.
- *
- * Return a stack such that the caller can append a new entry to the skip list by inserting it after
- *     each element in the stack. For non-empty levels, this will be the last element at that level
- *     of the skip list. For a level with no entries, this will be the corresponding entry in the
- *     head stack.
- */
-static WT_INLINE WT_EXT *
-__block_off_srch_last(WT_EXT **head, WT_EXT ***stack)
-{
-    WT_EXT **extp, *last;
-    int i;
-
-    last = NULL; /* The list may be empty */
-
-    /*
-     * Start at the highest skip level, then go as far as possible at each level before stepping
-     * down to the next.
-     */
-    for (i = WT_SKIP_MAXDEPTH - 1, extp = &head[i]; i >= 0;)
-        if (*extp != NULL) {
-            last = *extp;
-            extp = &(*extp)->next[i];
-        } else
-            stack[i--] = extp--;
-    return (last);
-}
-
-/*
  * __block_off_srch --
  *     Search a by-offset skiplist (either the primary by-offset list, or the by-offset list
  *     referenced by a size entry), for the specified offset.
@@ -1013,7 +983,7 @@ __block_append(
         last_ext->size += size;
     else {
         /* Update last_ext and, in case appending an extent, determine where to append an extent. */
-        last_ext = __block_off_srch_last(el->off, astack);
+        last_ext = __wt_extlist_off_srch_last(el->off, astack);
         if (last_ext != NULL && last_ext->off + last_ext->size == off)
             /* Extend the last object on the list. off is adjacent to the end of the last extent.*/
             last_ext->size += size;
@@ -1342,7 +1312,7 @@ __wt_block_extlist_can_truncate(WT_SESSION_IMPL *session, WT_BLOCK *block, WT_EX
     WT_EXT **astack[WT_SKIP_MAXDEPTH], *ext;
 
     /* Retrieve the last available extent. */
-    if ((ext = __block_off_srch_last(el->off, astack)) == NULL)
+    if ((ext = __wt_extlist_off_srch_last(el->off, astack)) == NULL)
         return (false);
 
     /* The extent should not go beyond the boundaries of the file. */
@@ -1369,7 +1339,7 @@ __wti_block_extlist_truncate(WT_SESSION_IMPL *session, WT_BLOCK *block, WT_EXTLI
      * Check if the last available extent is at the end of the file, and if so, truncate the file
      * and discard the extent.
      */
-    if ((ext = __block_off_srch_last(el->off, astack)) == NULL)
+    if ((ext = __wt_extlist_off_srch_last(el->off, astack)) == NULL)
         return (0);
     WT_ASSERT(session, ext->off + ext->size <= block->size);
     if (ext->off + ext->size < block->size)
@@ -1493,12 +1463,6 @@ err:
 }
 
 #ifdef HAVE_UNITTEST
-WT_EXT *
-__ut_block_off_srch_last(WT_EXT **head, WT_EXT ***stack)
-{
-    return (__block_off_srch_last(head, stack));
-}
-
 void
 __ut_block_off_srch(WT_EXT **head, wt_off_t off, WT_EXT ***stack, bool skip_off)
 {
