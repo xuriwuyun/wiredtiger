@@ -10,7 +10,7 @@
 
 /*
  * block_ext.c: [extent_list] Test extent list search functions: __wt_extlist_off_srch_last,
- * __wt_extlist_off_srch, __wt_extlist_first_srch, and __block_size_srch.
+ * __wt_extlist_off_srch, __wt_extlist_first_srch, and __wt_extlist_size_srch.
  */
 
 #include <memory>

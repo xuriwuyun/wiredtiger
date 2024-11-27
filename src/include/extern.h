@@ -1597,6 +1597,7 @@ extern void __wt_ext_spin_lock(
 extern void __wt_ext_spin_unlock(
   WT_EXTENSION_API *wt_api, WT_SESSION *session, WT_EXTENSION_SPINLOCK *ext_spinlock);
 extern void __wt_extlist_off_srch(WT_EXT **head, wt_off_t off, WT_EXT ***stack, bool skip_off);
+extern void __wt_extlist_size_srch(WT_SIZE **head, wt_off_t size, WT_SIZE ***stack);
 extern void __wt_fill_hex(
   const uint8_t *src, size_t src_max, uint8_t *dest, size_t dest_max, size_t *lenp);
 extern void __wt_free_int(WT_SESSION_IMPL *session, const void *p_arg)

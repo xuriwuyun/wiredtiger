@@ -29,29 +29,6 @@ static int __block_extlist_dump(WT_SESSION_IMPL *, WT_BLOCK *, WT_EXTLIST *, con
 static int __block_merge(WT_SESSION_IMPL *, WT_BLOCK *, WT_EXTLIST *, wt_off_t, wt_off_t);
 
 /*
- * __block_size_srch --
- *     Search the by-size skiplist for the specified size.
- */
-static WT_INLINE void
-__block_size_srch(WT_SIZE **head, wt_off_t size, WT_SIZE ***stack)
-{
-    WT_SIZE **szp;
-    int i;
-
-    /*
-     * Start at the highest skip level, then go as far as possible at each level before stepping
-     * down to the next.
-     *
-     * Return a stack for an exact match or the next-largest item.
-     */
-    for (i = WT_SKIP_MAXDEPTH - 1, szp = &head[i]; i >= 0;)
-        if (*szp != NULL && (*szp)->size < size)
-            szp = &(*szp)->next[i];
-        else
-            stack[i--] = szp--;
-}
-
-/*
  * __block_off_srch_pair --
  *     Search a by-offset skiplist for before/after records of the specified offset.
  */
@@ -103,7 +80,7 @@ __block_ext_insert(WT_SESSION_IMPL *session, WT_EXTLIST *el, WT_EXT *ext)
      * that skiplist.
      */
     if (el->track_size) {
-        __block_size_srch(el->sz, ext->size, sstack);
+        __wt_extlist_size_srch(el->sz, ext->size, sstack);
         szp = *sstack[0];
         if (szp == NULL || szp->size != ext->size) {
             WT_RET(__wti_block_size_alloc(session, &szp));
@@ -276,7 +253,7 @@ __block_off_remove(
      * skiplist entry, remove it as well.
      */
     if (el->track_size) {
-        __block_size_srch(el->sz, ext->size, sstack);
+        __wt_extlist_size_srch(el->sz, ext->size, sstack);
         szp = *sstack[0];
         if (szp == NULL || szp->size != ext->size)
             WT_RET_PANIC(session, EINVAL, "extent not found in by-size list during remove");
@@ -493,7 +470,7 @@ __wti_block_alloc(WT_SESSION_IMPL *session, WT_BLOCK *block, wt_off_t *offp, wt_
             goto append;
         ext = *estack[0];
     } else {
-        __block_size_srch(block->live.avail.sz, size, sstack);
+        __wt_extlist_size_srch(block->live.avail.sz, size, sstack);
         if ((szp = *sstack[0]) == NULL) {
 append:
             el = &block->live.alloc;
@@ -1427,7 +1404,7 @@ __ut_block_first_srch(WT_EXT **head, wt_off_t size, WT_EXT ***stack)
 void
 __ut_block_size_srch(WT_SIZE **head, wt_off_t size, WT_SIZE ***stack)
 {
-    __block_size_srch(head, size, stack);
+    __wt_extlist_size_srch(head, size, stack);
 }
 
 void

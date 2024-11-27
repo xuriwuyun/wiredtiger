@@ -88,3 +88,26 @@ __wt_extlist_first_srch(WT_EXT **head, wt_off_t size, WT_EXT ***stack)
     __wt_extlist_off_srch(head, ext->off, stack, false);
     return (true);
 }
+
+/*
+ * __wt_extlist_size_srch --
+ *     Search the by-size skiplist for the specified size.
+ */
+void
+__wt_extlist_size_srch(WT_SIZE **head, wt_off_t size, WT_SIZE ***stack)
+{
+    WT_SIZE **szp;
+    int i;
+
+    /*
+     * Start at the highest skip level, then go as far as possible at each level before stepping
+     * down to the next.
+     *
+     * Return a stack for an exact match or the next-largest item.
+     */
+    for (i = WT_SKIP_MAXDEPTH - 1, szp = &head[i]; i >= 0;)
+        if (*szp != NULL && (*szp)->size < size)
+            szp = &(*szp)->next[i];
+        else
+            stack[i--] = szp--;
+}
