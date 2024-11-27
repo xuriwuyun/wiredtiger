@@ -29,34 +29,6 @@ static int __block_extlist_dump(WT_SESSION_IMPL *, WT_BLOCK *, WT_EXTLIST *, con
 static int __block_merge(WT_SESSION_IMPL *, WT_BLOCK *, WT_EXTLIST *, wt_off_t, wt_off_t);
 
 /*
- * __block_off_srch --
- *     Search a by-offset skiplist (either the primary by-offset list, or the by-offset list
- *     referenced by a size entry), for the specified offset.
- */
-static WT_INLINE void
-__block_off_srch(WT_EXT **head, wt_off_t off, WT_EXT ***stack, bool skip_off)
-{
-    WT_EXT **extp;
-    int i;
-
-    /*
-     * Start at the highest skip level, then go as far as possible at each level before stepping
-     * down to the next.
-     *
-     * Return a stack for an exact match or the next-largest item.
-     *
-     * The WT_EXT structure contains two skiplists, the primary one and the per-size bucket one: if
-     * the skip_off flag is set, offset the skiplist array by the depth specified in this particular
-     * structure.
-     */
-    for (i = WT_SKIP_MAXDEPTH - 1, extp = &head[i]; i >= 0;)
-        if (*extp != NULL && (*extp)->off < off)
-            extp = &(*extp)->next[i + (skip_off ? (*extp)->depth : 0)];
-        else
-            stack[i--] = extp--;
-}
-
-/*
  * __block_first_srch --
  *     Search the skiplist for the first available slot.
  */
@@ -75,7 +47,7 @@ __block_first_srch(WT_EXT **head, wt_off_t size, WT_EXT ***stack)
         return (false);
 
     /* Build a stack for the offset we want. */
-    __block_off_srch(head, ext->off, stack, false);
+    __wt_extlist_off_srch(head, ext->off, stack, false);
     return (true);
 }
 
@@ -169,7 +141,7 @@ __block_ext_insert(WT_SESSION_IMPL *session, WT_EXTLIST *el, WT_EXT *ext)
         /*
          * Insert the new WT_EXT structure into the size element's offset skiplist.
          */
-        __block_off_srch(szp->off, ext->off, astack, true);
+        __wt_extlist_off_srch(szp->off, ext->off, astack, true);
         for (i = 0; i < ext->depth; ++i) {
             ext->next[i + ext->depth] = *astack[i];
             *astack[i] = ext;
@@ -182,7 +154,7 @@ __block_ext_insert(WT_SESSION_IMPL *session, WT_EXTLIST *el, WT_EXT *ext)
 #endif
 
     /* Insert the new WT_EXT structure into the offset skiplist. */
-    __block_off_srch(el->off, ext->off, astack, false);
+    __wt_extlist_off_srch(el->off, ext->off, astack, false);
     for (i = 0; i < ext->depth; ++i) {
         ext->next[i] = *astack[i];
         *astack[i] = ext;
@@ -315,7 +287,7 @@ __block_off_remove(
     u_int i;
 
     /* Find and remove the record from the by-offset skiplist. */
-    __block_off_srch(el->off, off, astack, false);
+    __wt_extlist_off_srch(el->off, off, astack, false);
     ext = *astack[0];
     if (ext == NULL || ext->off != off)
         goto corrupt;
@@ -331,7 +303,7 @@ __block_off_remove(
         szp = *sstack[0];
         if (szp == NULL || szp->size != ext->size)
             WT_RET_PANIC(session, EINVAL, "extent not found in by-size list during remove");
-        __block_off_srch(szp->off, off, astack, true);
+        __wt_extlist_off_srch(szp->off, off, astack, true);
         ext = *astack[0];
         if (ext == NULL || ext->off != off)
             goto corrupt;
@@ -1466,7 +1438,7 @@ err:
 void
 __ut_block_off_srch(WT_EXT **head, wt_off_t off, WT_EXT ***stack, bool skip_off)
 {
-    __block_off_srch(head, off, stack, skip_off);
+    __wt_extlist_off_srch(head, off, stack, skip_off);
 }
 
 bool
