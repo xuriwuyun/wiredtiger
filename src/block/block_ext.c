@@ -29,66 +29,6 @@ static int __block_extlist_dump(WT_SESSION_IMPL *, WT_BLOCK *, WT_EXTLIST *, con
 static int __block_merge(WT_SESSION_IMPL *, WT_BLOCK *, WT_EXTLIST *, wt_off_t, wt_off_t);
 
 /*
- * __block_ext_insert --
- *     Insert an extent into an extent list.
- */
-static int
-__block_ext_insert(WT_SESSION_IMPL *session, WT_EXTLIST *el, WT_EXT *ext)
-{
-    WT_EXT **astack[WT_SKIP_MAXDEPTH];
-    WT_SIZE **sstack[WT_SKIP_MAXDEPTH], *szp;
-    u_int i;
-
-    /*
-     * If we are inserting a new size onto the size skiplist, we'll need a new WT_SIZE structure for
-     * that skiplist.
-     */
-    if (el->track_size) {
-        __wt_extlist_size_srch(el->sz, ext->size, sstack);
-        szp = *sstack[0];
-        if (szp == NULL || szp->size != ext->size) {
-            WT_RET(__wti_block_size_alloc(session, &szp));
-            szp->size = ext->size;
-            szp->depth = ext->depth;
-            for (i = 0; i < ext->depth; ++i) {
-                szp->next[i] = *sstack[i];
-                *sstack[i] = szp;
-            }
-        }
-
-        /*
-         * Insert the new WT_EXT structure into the size element's offset skiplist.
-         */
-        __wt_extlist_off_srch(szp->off, ext->off, astack, true);
-        for (i = 0; i < ext->depth; ++i) {
-            ext->next[i + ext->depth] = *astack[i];
-            *astack[i] = ext;
-        }
-    }
-#ifdef HAVE_DIAGNOSTIC
-    if (!el->track_size)
-        for (i = 0; i < ext->depth; ++i)
-            ext->next[i + ext->depth] = NULL;
-#endif
-
-    /* Insert the new WT_EXT structure into the offset skiplist. */
-    __wt_extlist_off_srch(el->off, ext->off, astack, false);
-    for (i = 0; i < ext->depth; ++i) {
-        ext->next[i] = *astack[i];
-        *astack[i] = ext;
-    }
-
-    ++el->entries;
-    el->bytes += (uint64_t)ext->size;
-
-    /* Update the cached end-of-list. */
-    if (ext->next[0] == NULL)
-        el->last = ext;
-
-    return (0);
-}
-
-/*
  * __block_off_insert --
  *     Insert a file range into an extent list.
  */
@@ -101,7 +41,7 @@ __block_off_insert(WT_SESSION_IMPL *session, WT_EXTLIST *el, wt_off_t off, wt_of
     ext->off = off;
     ext->size = size;
 
-    return (__block_ext_insert(session, el, ext));
+    return (__wt_extlist_ext_insert(session, el, ext));
 }
 
 /*
@@ -336,7 +276,7 @@ __wti_block_off_remove_overlap(
     if (a_size > 0) {
         ext->off = a_off;
         ext->size = a_size;
-        WT_RET(__block_ext_insert(session, el, ext));
+        WT_RET(__wt_extlist_ext_insert(session, el, ext));
         ext = NULL;
     }
     if (b_size > 0) {
@@ -345,7 +285,7 @@ __wti_block_off_remove_overlap(
         else {
             ext->off = b_off;
             ext->size = b_size;
-            WT_RET(__block_ext_insert(session, el, ext));
+            WT_RET(__wt_extlist_ext_insert(session, el, ext));
             ext = NULL;
         }
     }
@@ -462,7 +402,7 @@ append:
 
         ext->off += size;
         ext->size -= size;
-        WT_RET(__block_ext_insert(session, &block->live.avail, ext));
+        WT_RET(__wt_extlist_ext_insert(session, &block->live.avail, ext));
     } else {
         __wt_verbose(session, WT_VERB_BLOCK, "%s: allocate range %" PRIdMAX "-%" PRIdMAX,
           block->live.avail.name, (intmax_t)ext->off, (intmax_t)(ext->off + ext->size));
@@ -713,7 +653,7 @@ __block_ext_overlap(WT_SESSION_IMPL *session, WT_BLOCK *block, WT_EXTLIST *ael, 
             WT_RET(__block_off_remove(session, block, ael, a->off, &a));
             a->off += b->size;
             a->size -= b->size;
-            WT_RET(__block_ext_insert(session, ael, a));
+            WT_RET(__wt_extlist_ext_insert(session, ael, a));
 
             /*
              * Move caller's B to the next element Add B's range to the avail list Delete B
@@ -729,7 +669,7 @@ __block_ext_overlap(WT_SESSION_IMPL *session, WT_BLOCK *block, WT_EXTLIST *ael, 
             WT_RET(__block_off_remove(session, block, bel, b->off, &b));
             b->off += a->size;
             b->size -= a->size;
-            WT_RET(__block_ext_insert(session, bel, b));
+            WT_RET(__wt_extlist_ext_insert(session, bel, b));
 
             /*
              * Move caller's A to the next element Add A's range to the avail list Delete A
@@ -744,7 +684,7 @@ __block_ext_overlap(WT_SESSION_IMPL *session, WT_BLOCK *block, WT_EXTLIST *ael, 
          */
         WT_RET(__block_off_remove(session, block, ael, a->off, &a));
         a->size -= b->size;
-        WT_RET(__block_ext_insert(session, ael, a));
+        WT_RET(__wt_extlist_ext_insert(session, ael, a));
 
         /*
          * Move caller's B to the next element Add B's range to the avail list Delete B
@@ -766,7 +706,7 @@ __block_ext_overlap(WT_SESSION_IMPL *session, WT_BLOCK *block, WT_EXTLIST *ael, 
          */
         WT_RET(__block_off_remove(session, block, ael, a->off, &a));
         a->size -= size;
-        WT_RET(__block_ext_insert(session, ael, a));
+        WT_RET(__wt_extlist_ext_insert(session, ael, a));
 
         /*
          * Remove B from its list Increment/Decrement B's offset/size by the overlap Insert B on its
@@ -775,7 +715,7 @@ __block_ext_overlap(WT_SESSION_IMPL *session, WT_BLOCK *block, WT_EXTLIST *ael, 
         WT_RET(__block_off_remove(session, block, bel, b->off, &b));
         b->off += size;
         b->size -= size;
-        WT_RET(__block_ext_insert(session, bel, b));
+        WT_RET(__wt_extlist_ext_insert(session, bel, b));
     } else { /* Case #5 */
         /* Calculate the offset/size of the trailing part of A. */
         off = b->off + b->size;
@@ -787,7 +727,7 @@ __block_ext_overlap(WT_SESSION_IMPL *session, WT_BLOCK *block, WT_EXTLIST *ael, 
          */
         WT_RET(__block_off_remove(session, block, ael, a->off, &a));
         a->size = b->off - a->off;
-        WT_RET(__block_ext_insert(session, ael, a));
+        WT_RET(__wt_extlist_ext_insert(session, ael, a));
 
         /* Add trailing part of A to A's list as a new element. */
         WT_RET(__block_merge(session, block, ael, off, size));
@@ -991,7 +931,7 @@ __block_merge(
 
         ext->size += size;
     }
-    return (__block_ext_insert(session, el, ext));
+    return (__wt_extlist_ext_insert(session, el, ext));
 }
 
 /*
@@ -1380,7 +1320,7 @@ __ut_block_off_srch_pair(WT_EXTLIST *el, wt_off_t off, WT_EXT **beforep, WT_EXT 
 int
 __ut_block_ext_insert(WT_SESSION_IMPL *session, WT_EXTLIST *el, WT_EXT *ext)
 {
-    return (__block_ext_insert(session, el, ext));
+    return (__wt_extlist_ext_insert(session, el, ext));
 }
 
 int
