@@ -496,6 +496,7 @@ typedef uint64_t wt_timestamp_t;
 
 #include "stat.h"         /* required by dhandle.h */
 #include "dhandle.h"      /* required by btree.h, connection.h */
+#include "extent_list.h"  /* required by extent_list.h */
 #include "timestamp.h"    /* required by reconcile.h */
 #include "thread_group.h" /* required by rollback_to_stable.h */
 

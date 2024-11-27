@@ -16,93 +16,8 @@
  * The file's description is written into the first block of the file, which means we can use an
  * offset of 0 as an invalid offset.
  */
+/* FIXME - Block specific. Split out from extlist */
 #define WT_BLOCK_INVALID_OFFSET 0
-
-/*
- * The block manager maintains three per-checkpoint extent lists:
- *	alloc:	 the extents allocated in this checkpoint
- *	avail:	 the extents available for allocation
- *	discard: the extents freed in this checkpoint
- *
- * An extent list is based on two skiplists: first, a by-offset list linking
- * WT_EXT elements and sorted by file offset (low-to-high), second, a by-size
- * list linking WT_SIZE elements and sorted by chunk size (low-to-high).
- *
- * Additionally, each WT_SIZE element on the by-size has a skiplist of its own,
- * linking WT_EXT elements and sorted by file offset (low-to-high).  This list
- * has an entry for extents of a particular size.
- *
- * The trickiness is each individual WT_EXT element appears on two skiplists.
- * In order to minimize allocation calls, we allocate a single array of WT_EXT
- * pointers at the end of the WT_EXT structure, for both skiplists, and store
- * the depth of the skiplist in the WT_EXT structure.  The skiplist entries for
- * the offset skiplist start at WT_EXT.next[0] and the entries for the size
- * skiplist start at WT_EXT.next[WT_EXT.depth].
- *
- * One final complication: we only maintain the per-size skiplist for the avail
- * list, the alloc and discard extent lists are not searched based on size.
- */
-
-/*
- * WT_EXTLIST --
- *	An extent list.
- */
-struct __wt_extlist {
-    char *name; /* Name */
-
-    uint64_t bytes;   /* Byte count */
-    uint32_t entries; /* Entry count */
-
-    uint32_t objectid; /* Written object ID */
-    wt_off_t offset;   /* Written extent offset */
-    uint32_t checksum; /* Written extent checksum */
-    uint32_t size;     /* Written extent size */
-
-    bool track_size; /* Maintain per-size skiplist */
-
-    WT_EXT *last; /* Cached last element */
-
-    WT_EXT *off[WT_SKIP_MAXDEPTH]; /* Size/offset skiplists */
-    WT_SIZE *sz[WT_SKIP_MAXDEPTH];
-};
-
-/*
- * WT_EXT --
- *	Encapsulation of an extent, either allocated or freed within the
- * checkpoint.
- */
-struct __wt_ext {
-    wt_off_t off;  /* Extent's file offset */
-    wt_off_t size; /* Extent's Size */
-
-    uint8_t depth; /* Skip list depth */
-
-    /*
-     * Variable-length array, sized by the number of skiplist elements. The first depth array
-     * entries are the address skiplist elements, the second depth array entries are the size
-     * skiplist.
-     */
-    WT_EXT *next[0]; /* Offset, size skiplists */
-};
-
-/*
- * WT_SIZE --
- *	Encapsulation of a block size skiplist entry.
- */
-struct __wt_size {
-    wt_off_t size; /* Size */
-
-    uint8_t depth; /* Skip list depth */
-
-    WT_EXT *off[WT_SKIP_MAXDEPTH]; /* Per-size offset skiplist */
-
-    /*
-     * We don't use a variable-length array for the size skiplist, we want to be able to use any
-     * cached WT_SIZE structure as the head of a list, and we don't know the related WT_EXT
-     * structure's depth.
-     */
-    WT_SIZE *next[WT_SKIP_MAXDEPTH]; /* Size skiplist */
-};
 
 /*
  * Per session handle cached block manager information.
@@ -114,27 +29,6 @@ typedef struct {
     WT_SIZE *sz_cache;  /* List of WT_SIZE handles */
     u_int sz_cache_cnt; /* Count */
 } WT_BLOCK_MGR_SESSION;
-
-/*
- * WT_EXT_FOREACH --
- *	Walk a block manager skiplist.
- * WT_EXT_FOREACH_OFF --
- *	Walk a block manager skiplist where the WT_EXT.next entries are offset
- * by the depth.
- */
-#define WT_EXT_FOREACH(skip, head) \
-    for ((skip) = (head)[0]; (skip) != NULL; (skip) = (skip)->next[0])
-#define WT_EXT_FOREACH_OFF(skip, head) \
-    for ((skip) = (head)[0]; (skip) != NULL; (skip) = (skip)->next[(skip)->depth])
-
-/*
- * WT_EXT_FOREACH_FROM_OFFSET_INCL --
- *	Walk a by-offset skiplist from the given offset, starting with the extent that contains the
- * given offset if available.
- */
-#define WT_EXT_FOREACH_FROM_OFFSET_INCL(skip, el, start)                        \
-    for ((skip) = __wt_block_off_srch_inclusive((el), (start)); (skip) != NULL; \
-         (skip) = (skip)->next[0])
 
 /*
  * Checkpoint cookie: carries a version number as I don't want to rev the schema
@@ -167,6 +61,12 @@ struct __wt_block_ckpt {
     wt_off_t root_offset; /* The root */
     uint32_t root_checksum, root_size;
 
+    /*
+     * The block manager maintains three per-checkpoint extent lists:
+     *    alloc:   the extents allocated in this checkpoint
+     *    avail:   the extents available for allocation
+     *    discard: the extents freed in this checkpoint
+     */
     WT_EXTLIST alloc;   /* Extents allocated */
     WT_EXTLIST avail;   /* Extents available */
     WT_EXTLIST discard; /* Extents discarded */
