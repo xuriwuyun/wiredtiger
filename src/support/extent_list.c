@@ -8,6 +8,21 @@
 
 #include "wt_internal.h"
 
+/* FIXME-WT-13797 Remove this macro from block_ext.c when fully migrated. */
+
+/*
+ * WT_EXT_VERIFY_RET --
+ *	Handle extension list errors that would normally panic the system but
+ * which should fail gracefully when verifying.
+ */
+#define WT_EXT_VERIFY_RET(session, verify, v, ...)                                                 \
+    do {                                                                                           \
+        int __ret = (v);                                                                           \
+        __wt_err(session, __ret, __VA_ARGS__);                                                     \
+        return ((verify) ? __ret :                                                                 \
+                           __wt_panic(session, WT_PANIC, "block manager extension list failure")); \
+    } while (0)
+
 /*
  * __wt_extlist_off_srch_last --
  *     Return the last element in the list, along with a stack for appending.
@@ -267,3 +282,76 @@ __wt_extlist_off_match(WT_EXTLIST *el, wt_off_t off, wt_off_t size)
     return (false);
 }
 #endif
+
+/*
+ * __wt_extlist_off_remove --
+ *     Remove a record from an extent list.
+ */
+int
+__wt_extlist_off_remove(
+  WT_SESSION_IMPL *session, bool verify, WT_EXTLIST *el, wt_off_t off, WT_EXT **extp)
+{
+    WT_EXT **astack[WT_SKIP_MAXDEPTH], *ext;
+    WT_SIZE **sstack[WT_SKIP_MAXDEPTH], *szp;
+    u_int i;
+
+    /* Find and remove the record from the by-offset skiplist. */
+    __wt_extlist_off_srch(el->off, off, astack, false);
+    ext = *astack[0];
+    if (ext == NULL || ext->off != off)
+        goto corrupt;
+    for (i = 0; i < ext->depth; ++i)
+        *astack[i] = ext->next[i];
+
+    /*
+     * Find and remove the record from the size's offset skiplist; if that empties the by-size
+     * skiplist entry, remove it as well.
+     */
+    if (el->track_size) {
+        __wt_extlist_size_srch(el->sz, ext->size, sstack);
+        szp = *sstack[0];
+        if (szp == NULL || szp->size != ext->size)
+            WT_RET_PANIC(session, EINVAL, "extent not found in by-size list during remove");
+        __wt_extlist_off_srch(szp->off, off, astack, true);
+        ext = *astack[0];
+        if (ext == NULL || ext->off != off)
+            goto corrupt;
+        for (i = 0; i < ext->depth; ++i)
+            *astack[i] = ext->next[i + ext->depth];
+        if (szp->off[0] == NULL) {
+            for (i = 0; i < szp->depth; ++i)
+                *sstack[i] = szp->next[i];
+            __wti_block_size_free(session, &szp);
+        }
+    }
+#ifdef HAVE_DIAGNOSTIC
+    if (!el->track_size) {
+        bool not_null;
+        for (i = 0, not_null = false; i < ext->depth; ++i)
+            if (ext->next[i + ext->depth] != NULL)
+                not_null = true;
+        WT_ASSERT(session, not_null == false);
+    }
+#endif
+
+    --el->entries;
+    el->bytes -= (uint64_t)ext->size;
+
+    /* Return the record if our caller wants it, otherwise free it. */
+    if (extp == NULL) {
+        WT_EXT *ext_to_free = ext;
+        __wti_block_ext_free(session, &ext_to_free);
+    } else
+        *extp = ext;
+
+    /* Update the cached end-of-list. */
+    if (el->last == ext)
+        /* To save time, update to the correct value later. */
+        el->last = NULL;
+
+    return (0);
+
+corrupt:
+    WT_EXT_VERIFY_RET(
+      session, verify, EINVAL, "attempt to remove non-existent offset from an extent list");
+}

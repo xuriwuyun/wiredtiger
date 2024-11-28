@@ -10,7 +10,7 @@
  * [extent_list]: block_ext.c
  * Test extent list functions part 4.
  *
- * Test extent list insert/remove functions with block: __block_merge, __block_off_remove,
+ * Test extent list insert/remove functions with block: __block_merge, __wt_extlist_off_remove,
  * __block_extend, and __block_append.
  */
 
@@ -166,7 +166,7 @@ TEST_CASE("Extent Lists: block_off_remove", "[extent_list]")
 
         /* Setup. */
         WT_EXTLIST extlist = {};
-        extlist.name = const_cast<char *>("__block_off_remove");
+        extlist.name = const_cast<char *>("__wt_extlist_off_remove");
 
         /* Insert extents. */
         for (const off_size &to_insert : insert_list) {
@@ -182,8 +182,8 @@ TEST_CASE("Extent Lists: block_off_remove", "[extent_list]")
         verify_off_extent_list(extlist, expected_order);
 
         /* Test. */
-        WT_BLOCK block = {}; // __block_off_remove used only in error checking..
-        block.name = const_cast<char *>("__block_off_remove");
+        WT_BLOCK block = {}; // __wt_extlist_off_remove used only in error checking..
+        block.name = const_cast<char *>("__wt_extlist_off_remove");
         int idx = 0;
         for (const off_expected &test : test_list) {
             /* For testing, half request ext returned, and half do not. */
