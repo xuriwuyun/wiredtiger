@@ -1209,12 +1209,12 @@ __live_restore_fs_terminate(WT_FILE_SYSTEM *fs, WT_SESSION *wt_session)
 }
 
 /*
- * __wt_os_union_fs --
- *     Initialize a union file system configuration.
+ * __wt_os_live_restore_fs --
+ *     Initialize a live restore file system configuration.
  */
 int
-__wt_os_union_fs(WT_SESSION_IMPL *session, WT_CONFIG_ITEM *source_cfg, const char *destination,
-  WT_FILE_SYSTEM **fsp)
+__wt_os_live_restore_fs(WT_SESSION_IMPL *session, WT_CONFIG_ITEM *source_cfg,
+  const char *destination, WT_FILE_SYSTEM **fsp)
 {
     WT_LIVE_RESTORE_FS *lr_fs;
 
