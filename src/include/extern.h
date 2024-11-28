@@ -608,6 +608,8 @@ extern int __wt_extlist_off_insert(WT_SESSION_IMPL *session, WT_EXTLIST *el, wt_
   wt_off_t size) WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
 extern int __wt_extlist_off_remove(WT_SESSION_IMPL *session, bool verify, WT_EXTLIST *el,
   wt_off_t off, WT_EXT **extp) WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
+extern int __wt_extlist_off_remove_overlap(WT_SESSION_IMPL *session, bool verify, WT_EXTLIST *el,
+  wt_off_t off, wt_off_t size) WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
 extern int __wt_file_zero(WT_SESSION_IMPL *session, WT_FH *fh, wt_off_t start_off, wt_off_t size,
   WT_THROTTLE_TYPE type) WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
 extern int __wt_filename(WT_SESSION_IMPL *session, const char *name, char **path)

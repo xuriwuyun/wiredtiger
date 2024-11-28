@@ -355,3 +355,90 @@ corrupt:
     WT_EXT_VERIFY_RET(
       session, verify, EINVAL, "attempt to remove non-existent offset from an extent list");
 }
+
+/*
+ * __wt_extlist_off_remove_overlap --
+ *     Remove a range from an extent list, where the range may be part of an overlapping entry.
+ */
+int
+__wt_extlist_off_remove_overlap(
+  WT_SESSION_IMPL *session, bool verify, WT_EXTLIST *el, wt_off_t off, wt_off_t size)
+{
+    WT_EXT *after, *before, *ext;
+    wt_off_t a_off, a_size, b_off, b_size;
+
+    /* Search for before and after entries for the offset. */
+    __wt_extlist_off_srch_pair(el, off, &before, &after);
+
+    /* If "before" or "after" overlaps, retrieve the overlapping entry. */
+    if (before != NULL && before->off + before->size > off) {
+        WT_RET(__wt_extlist_off_remove(session, verify, el, before->off, &ext));
+
+        WT_ASSERT(session, ext->off + ext->size >= off + size);
+
+        /* Calculate overlapping extents. */
+        a_off = ext->off;
+        a_size = off - ext->off;
+        b_off = off + size;
+        b_size = ext->size - (a_size + size);
+
+        if (a_size > 0) {
+            __wt_verbose_debug2(session, WT_VERB_BLOCK,
+              "%s: %" PRIdMAX "-%" PRIdMAX " range shrinks to %" PRIdMAX "-%" PRIdMAX, el->name,
+              (intmax_t)before->off, (intmax_t)before->off + (intmax_t)before->size,
+              (intmax_t)(a_off), (intmax_t)(a_off + a_size));
+        }
+
+        if (b_size > 0) {
+            __wt_verbose_debug2(session, WT_VERB_BLOCK,
+              "%s: %" PRIdMAX "-%" PRIdMAX " range shrinks to %" PRIdMAX "-%" PRIdMAX, el->name,
+              (intmax_t)before->off, (intmax_t)before->off + (intmax_t)before->size,
+              (intmax_t)(b_off), (intmax_t)(b_off + b_size));
+        }
+    } else if (after != NULL && off + size > after->off) {
+        WT_RET(__wt_extlist_off_remove(session, verify, el, after->off, &ext));
+
+        WT_ASSERT(session, off == ext->off && off + size <= ext->off + ext->size);
+
+        /*
+         * Calculate overlapping extents. There's no initial overlap since the after extent
+         * presumably cannot begin before "off".
+         */
+        a_off = WT_BLOCK_INVALID_OFFSET;
+        a_size = 0;
+        b_off = off + size;
+        b_size = ext->size - (b_off - ext->off);
+
+        if (b_size > 0)
+            __wt_verbose_debug2(session, WT_VERB_BLOCK,
+              "%s: %" PRIdMAX "-%" PRIdMAX " range shrinks to %" PRIdMAX "-%" PRIdMAX, el->name,
+              (intmax_t)after->off, (intmax_t)after->off + (intmax_t)after->size, (intmax_t)(b_off),
+              (intmax_t)(b_off + b_size));
+
+    } else
+        return (WT_NOTFOUND);
+
+    /*
+     * If there are overlaps, insert the item; re-use the extent structure and save the allocation
+     * (we know there's no need to merge).
+     */
+    if (a_size > 0) {
+        ext->off = a_off;
+        ext->size = a_size;
+        WT_RET(__wt_extlist_ext_insert(session, el, ext));
+        ext = NULL;
+    }
+    if (b_size > 0) {
+        if (ext == NULL)
+            WT_RET(__wt_extlist_off_insert(session, el, b_off, b_size));
+        else {
+            ext->off = b_off;
+            ext->size = b_size;
+            WT_RET(__wt_extlist_ext_insert(session, el, ext));
+            ext = NULL;
+        }
+    }
+    if (ext != NULL)
+        __wti_block_ext_free(session, &ext);
+    return (0);
+}
