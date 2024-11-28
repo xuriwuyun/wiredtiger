@@ -31,7 +31,7 @@ struct __wt_live_restore_hole_list {
 
 /*
  * WT_DESTINATION_METADATA --
- *     A file handle in a union file system - one layer.
+ *     A file handle in a live restore file system - one layer.
  */
 typedef struct {
     WT_FILE_HANDLE *fh;
@@ -49,7 +49,7 @@ typedef struct {
 
 /*
  * __wt_live_restore_file_handle --
- *     A file handle in a union file system.
+ *     A file handle in a live restore file system.
  */
 struct __wt_live_restore_file_handle {
     WT_FILE_HANDLE iface;

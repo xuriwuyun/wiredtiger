@@ -434,7 +434,7 @@ __live_restore_alloc_extent(WT_SESSION_IMPL *session, wt_off_t offset, size_t le
 
 /*
  * __live_restore_fs_free_extent_list --
- *     Free the extents associated with a union file handle.
+ *     Free the extents associated with a live restore file handle.
  */
 static void
 __live_restore_fs_free_extent_list(WT_SESSION_IMPL *session, WT_LIVE_RESTORE_FILE_HANDLE *lr_fh)
@@ -645,7 +645,7 @@ __read_promote(WT_LIVE_RESTORE_FILE_HANDLE *lr_fh, WT_SESSION_IMPL *session, wt_
 
 /*
  * __live_restore_fh_read --
- *     File read in a union file system.
+ *     File read in a live restore file system.
  */
 static int
 __live_restore_fh_read(
@@ -741,7 +741,7 @@ __live_restore_fh_close(WT_FILE_HANDLE *fh, WT_SESSION *wt_session)
 
     lr_fh = (WT_LIVE_RESTORE_FILE_HANDLE *)fh;
     session = (WT_SESSION_IMPL *)wt_session;
-    __wt_verbose_debug1(session, WT_VERB_FILEOPS, "UNION_FS: Closing file: %s\n", fh->name);
+    __wt_verbose_debug1(session, WT_VERB_FILEOPS, "LIVE_RESTORE_FS: Closing file: %s\n", fh->name);
 
     __live_restore_fs_fill_holes_on_file_close(fh, wt_session);
 
@@ -938,8 +938,8 @@ err:
 
 /*
  * __live_restore_fs_open_file --
- *     Open a union file handle. This will: - If the file exists in the source, open it in both. -
- *     If it doesn't exist it'll only open it in the destination.
+ *     Open a live restore file handle. This will: - If the file exists in the source, open it in
+ *     both. - If it doesn't exist it'll only open it in the destination.
  */
 static int
 __live_restore_fs_open_file(WT_FILE_SYSTEM *fs, WT_SESSION *wt_session, const char *name,
@@ -1011,8 +1011,8 @@ __live_restore_fs_open_file(WT_FILE_SYSTEM *fs, WT_SESSION *wt_session, const ch
 
                 /*
                  * Set size by truncating. This is a positive length truncate so it actually extends
-                 * the file. We're bypassing the union layer so we don't try to modify the extents
-                 * in hole_list.
+                 * the file. We're bypassing the live_restore layer so we don't try to modify the
+                 * extents in hole_list.
                  */
                 lr_fh->destination.fh->fh_truncate(lr_fh->destination.fh, wt_session, source_size);
 

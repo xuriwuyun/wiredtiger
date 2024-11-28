@@ -15,7 +15,7 @@ typedef enum {
 
 /*
  * __wt_live_restore_fs_layer --
- *     A layer in a union file system.
+ *     A layer in a live restore file system.
  */
 struct __wt_live_restore_fs_layer {
     const char *home;
@@ -24,7 +24,7 @@ struct __wt_live_restore_fs_layer {
 
 /*
  * __wt_live_restore_fs --
- *     A union file system in the user space, which consists of one or more actual FS layers.
+ *     A live restore file system in the user space, which consists of one or more actual FS layers.
  */
 struct __wt_live_restore_fs {
     WT_FILE_SYSTEM iface;
