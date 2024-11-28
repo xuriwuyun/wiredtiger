@@ -103,6 +103,6 @@ struct __wt_size {
  *	Walk a by-offset skiplist from the given offset, starting with the extent that contains the
  * given offset if available.
  */
-#define WT_EXT_FOREACH_FROM_OFFSET_INCL(skip, el, start)                        \
-    for ((skip) = __wt_block_off_srch_inclusive((el), (start)); (skip) != NULL; \
+#define WT_EXT_FOREACH_FROM_OFFSET_INCL(skip, el, start)                          \
+    for ((skip) = __wt_extlist_off_srch_inclusive((el), (start)); (skip) != NULL; \
          (skip) = (skip)->next[0])

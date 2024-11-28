@@ -223,3 +223,22 @@ __wt_extlist_off_insert(WT_SESSION_IMPL *session, WT_EXTLIST *el, wt_off_t off, 
 
     return (__wt_extlist_ext_insert(session, el, ext));
 }
+
+/*
+ * __wt_extlist_off_srch_inclusive --
+ *     Search a by-offset skiplist for the extent that contains the given offset, or if there is no
+ *     such extent, then get the next extent.
+ */
+WT_EXT *
+__wt_extlist_off_srch_inclusive(WT_EXTLIST *el, wt_off_t off)
+{
+    WT_EXT *after, *before;
+
+    __wt_extlist_off_srch_pair(el, off, &before, &after);
+
+    /* Check if the search key is in the before extent. Otherwise return the after extent. */
+    if (before != NULL && before->off <= off && before->off + before->size > off)
+        return (before);
+    else
+        return (after);
+}

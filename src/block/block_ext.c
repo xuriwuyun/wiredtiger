@@ -28,25 +28,6 @@ static int __block_ext_overlap(
 static int __block_extlist_dump(WT_SESSION_IMPL *, WT_BLOCK *, WT_EXTLIST *, const char *);
 static int __block_merge(WT_SESSION_IMPL *, WT_BLOCK *, WT_EXTLIST *, wt_off_t, wt_off_t);
 
-/*
- * __wt_block_off_srch_inclusive --
- *     Search a by-offset skiplist for the extent that contains the given offset, or if there is no
- *     such extent, then get the next extent.
- */
-WT_EXT *
-__wt_block_off_srch_inclusive(WT_EXTLIST *el, wt_off_t off)
-{
-    WT_EXT *after, *before;
-
-    __wt_extlist_off_srch_pair(el, off, &before, &after);
-
-    /* Check if the search key is in the before extent. Otherwise return the after extent. */
-    if (before != NULL && before->off <= off && before->off + before->size > off)
-        return (before);
-    else
-        return (after);
-}
-
 #if defined(HAVE_DIAGNOSTIC) || defined(HAVE_UNITTEST)
 /*
  * __block_off_match --
