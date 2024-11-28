@@ -922,9 +922,9 @@ __ckpt_update(
 
 #ifdef HAVE_DIAGNOSTIC
     /* Check the extent list combinations for overlaps. */
-    WT_RET(__wti_block_extlist_check(session, &ci->alloc, &ci->avail));
-    WT_RET(__wti_block_extlist_check(session, &ci->discard, &ci->avail));
-    WT_RET(__wti_block_extlist_check(session, &ci->alloc, &ci->discard));
+    WT_RET(__wt_extlist_overlap_check(session, &ci->alloc, &ci->avail));
+    WT_RET(__wt_extlist_overlap_check(session, &ci->discard, &ci->avail));
+    WT_RET(__wt_extlist_overlap_check(session, &ci->alloc, &ci->discard));
 #endif
     /*
      * Write the checkpoint's alloc and discard extent lists. Note these blocks never appear on the

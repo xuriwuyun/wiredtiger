@@ -442,3 +442,36 @@ __wt_extlist_off_remove_overlap(
         __wti_block_ext_free(session, &ext);
     return (0);
 }
+
+#ifdef HAVE_DIAGNOSTIC
+/*
+ * __wt_extlist_overlap_check --
+ *     Return if the extent lists overlap.
+ */
+int
+__wt_extlist_overlap_check(WT_SESSION_IMPL *session, WT_EXTLIST *al, WT_EXTLIST *bl)
+{
+    WT_EXT *a, *b;
+
+    a = al->off[0];
+    b = bl->off[0];
+
+    /* Walk the lists in parallel, looking for overlaps. */
+    while (a != NULL && b != NULL) {
+        /*
+         * If there's no overlap, move the lower-offset entry to the next entry in its list.
+         */
+        if (a->off + a->size <= b->off) {
+            a = a->next[0];
+            continue;
+        }
+        if (b->off + b->size <= a->off) {
+            b = b->next[0];
+            continue;
+        }
+        WT_RET_PANIC(session, EINVAL, "checkpoint merge check: %s list overlaps the %s list",
+          al->name, bl->name);
+    }
+    return (0);
+}
+#endif
