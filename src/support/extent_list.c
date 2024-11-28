@@ -242,3 +242,28 @@ __wt_extlist_off_srch_inclusive(WT_EXTLIST *el, wt_off_t off)
     else
         return (after);
 }
+
+#if defined(HAVE_DIAGNOSTIC) || defined(HAVE_UNITTEST)
+/*
+ * __wt_extlist_off_match --
+ *     Return if any part of a specified range appears on a specified extent list.
+ */
+bool
+__wt_extlist_off_match(WT_EXTLIST *el, wt_off_t off, wt_off_t size)
+{
+    WT_EXT *after, *before;
+
+    if (WT_UNLIKELY(size == 0))
+        return (false);
+
+    /* Search for before and after entries for the offset. */
+    __wt_extlist_off_srch_pair(el, off, &before, &after);
+
+    /* If "before" or "after" overlaps, we have a winner. */
+    if (before != NULL && before->off + before->size > off)
+        return (true);
+    if (after != NULL && off + size > after->off)
+        return (true);
+    return (false);
+}
+#endif

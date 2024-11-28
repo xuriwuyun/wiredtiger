@@ -10,8 +10,8 @@
  * [extent_list]: block_ext.c
  * Test extent list functions part 3.
  *
- * Test extent list search functions: __wt_extlist_off_srch_pair, and __block_off_match which is
- * HAVE_DIAGNOSTIC only except for unit tests.
+ * Test extent list search functions: __wt_extlist_off_srch_pair, and __wt_extlist_off_match which
+ * is HAVE_DIAGNOSTIC only except for unit tests.
  */
 
 #include <algorithm>
@@ -151,7 +151,7 @@ TEST_CASE("Extent Lists: block_off_srch_pair", "[extent_list]")
 
 #ifdef HAVE_DIAGNOSTIC
 /*!
- * A test (test_off_size) and the expected value (match) for __block_off_match.
+ * A test (test_off_size) and the expected value (match) for __wt_extlist_off_match.
  */
 struct search_match {
     off_size test_off_size;
@@ -189,7 +189,7 @@ TEST_CASE("Extent Lists: block_off_match", "[extent_list]")
       off_size(5 * 4096, 4096), // Third [20,480, 24,575].
     };
 
-    /* Tests and expected values for __block_off_match. */
+    /* Tests and expected values for __wt_extlist_off_match. */
     std::vector<search_match> expected_match{
       search_match(0, 0, false),                 // Empty: Before first 0.
       search_match(4095, 0, false),              // Empty: Just before first 4,095.

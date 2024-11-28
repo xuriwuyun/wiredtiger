@@ -30,29 +30,6 @@ static int __block_merge(WT_SESSION_IMPL *, WT_BLOCK *, WT_EXTLIST *, wt_off_t, 
 
 #if defined(HAVE_DIAGNOSTIC) || defined(HAVE_UNITTEST)
 /*
- * __block_off_match --
- *     Return if any part of a specified range appears on a specified extent list.
- */
-static bool
-__block_off_match(WT_EXTLIST *el, wt_off_t off, wt_off_t size)
-{
-    WT_EXT *after, *before;
-
-    if (WT_UNLIKELY(size == 0))
-        return (false);
-
-    /* Search for before and after entries for the offset. */
-    __wt_extlist_off_srch_pair(el, off, &before, &after);
-
-    /* If "before" or "after" overlaps, we have a winner. */
-    if (before != NULL && before->off + before->size > off)
-        return (true);
-    if (after != NULL && off + size > after->off)
-        return (true);
-    return (false);
-}
-
-/*
  * __wti_block_misplaced --
  *     Complain if a block appears on the available or discard lists.
  */
@@ -84,9 +61,9 @@ __wti_block_misplaced(WT_SESSION_IMPL *session, WT_BLOCK *block, const char *lis
      * attempt to free a block from a checkpoint handle has already failed.)
      */
     __wt_spin_lock(session, &block->live_lock);
-    if (__block_off_match(&block->live.avail, offset, size))
+    if (__wt_extlist_off_match(&block->live.avail, offset, size))
         name = "available";
-    else if (live && __block_off_match(&block->live.discard, offset, size))
+    else if (live && __wt_extlist_off_match(&block->live.discard, offset, size))
         name = "discard";
     __wt_spin_unlock(session, &block->live_lock);
     if (name != NULL)
@@ -1297,7 +1274,7 @@ __ut_block_off_insert(WT_SESSION_IMPL *session, WT_EXTLIST *el, wt_off_t off, wt
 bool
 __ut_block_off_match(WT_EXTLIST *el, wt_off_t off, wt_off_t size)
 {
-    return (__block_off_match(el, off, size));
+    return (__wt_extlist_off_match(el, off, size));
 }
 
 int
