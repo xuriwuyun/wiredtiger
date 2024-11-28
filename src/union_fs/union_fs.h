@@ -8,26 +8,29 @@
 
 #pragma once
 
-typedef enum { WT_UNION_FS_LAYER_DESTINATION, WT_UNION_FS_LAYER_SOURCE } WT_UNION_FS_LAYER_TYPE;
+typedef enum {
+    WT_LIVE_RESTORE_FS_LAYER_DESTINATION,
+    WT_LIVE_RESTORE_FS_LAYER_SOURCE
+} WT_LIVE_RESTORE_FS_LAYER_TYPE;
 
 /*
- * __wt_union_fs_layer --
+ * __wt_live_restore_fs_layer --
  *     A layer in a union file system.
  */
-struct __wt_union_fs_layer {
+struct __wt_live_restore_fs_layer {
     const char *home;
-    WT_UNION_FS_LAYER_TYPE which;
+    WT_LIVE_RESTORE_FS_LAYER_TYPE which;
 };
 
 /*
- * __wt_union_fs --
+ * __wt_live_restore_fs --
  *     A union file system in the user space, which consists of one or more actual FS layers.
  */
-struct __wt_union_fs {
+struct __wt_live_restore_fs {
     WT_FILE_SYSTEM iface;
     WT_FILE_SYSTEM *os_file_system; /* The storage file system. */
-    WT_UNION_FS_LAYER destination;
-    WT_UNION_FS_LAYER source;
+    WT_LIVE_RESTORE_FS_LAYER destination;
+    WT_LIVE_RESTORE_FS_LAYER source;
 };
 
 /* DO NOT EDIT: automatically built by prototypes.py: BEGIN */
