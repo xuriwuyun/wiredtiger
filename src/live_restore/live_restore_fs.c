@@ -7,7 +7,7 @@
  */
 
 #include "wt_internal.h"
-#include "union_fs_private.h"
+#include "live_restore_private.h"
 #include <unistd.h>
 
 /*
@@ -1126,7 +1126,7 @@ __live_restore_fs_rename(
      */
 
     __wt_verbose_debug1(
-      session, WT_VERB_FILEOPS, "UNION_FS: Renaming file from: %s to %s\n", from, to);
+      session, WT_VERB_FILEOPS, "LIVE_RESTORE: Renaming file from: %s to %s\n", from, to);
     WT_RET_NOTFOUND_OK(__live_restore_fs_find_layer(fs, session, from, &which, &exist));
     if (ret == WT_NOTFOUND || !exist)
         return (ENOENT);

@@ -531,6 +531,7 @@ typedef uint64_t wt_timestamp_t;
 #include "generation.h"
 #include "hazard.h"
 #include "json.h"
+#include "../live_restore/live_restore.h"
 #include "../log/log.h"
 #include "lsm.h"
 #include "meta.h" /* required by block.h */
@@ -542,7 +543,6 @@ typedef uint64_t wt_timestamp_t;
 #include "tiered.h"
 #include "truncate.h"
 #include "txn.h"
-#include "../union_fs/union_fs.h"
 #include "verbose.h"
 
 #include "session.h" /* required by connection.h */
