@@ -29,22 +29,6 @@ static int __block_extlist_dump(WT_SESSION_IMPL *, WT_BLOCK *, WT_EXTLIST *, con
 static int __block_merge(WT_SESSION_IMPL *, WT_BLOCK *, WT_EXTLIST *, wt_off_t, wt_off_t);
 
 /*
- * __block_off_insert --
- *     Insert a file range into an extent list.
- */
-static int
-__block_off_insert(WT_SESSION_IMPL *session, WT_EXTLIST *el, wt_off_t off, wt_off_t size)
-{
-    WT_EXT *ext;
-
-    WT_RET(__wti_block_ext_alloc(session, &ext));
-    ext->off = off;
-    ext->size = size;
-
-    return (__wt_extlist_ext_insert(session, el, ext));
-}
-
-/*
  * __wt_block_off_srch_inclusive --
  *     Search a by-offset skiplist for the extent that contains the given offset, or if there is no
  *     such extent, then get the next extent.
@@ -281,7 +265,7 @@ __wti_block_off_remove_overlap(
     }
     if (b_size > 0) {
         if (ext == NULL)
-            WT_RET(__block_off_insert(session, el, b_off, b_size));
+            WT_RET(__wt_extlist_off_insert(session, el, b_off, b_size));
         else {
             ext->off = b_off;
             ext->size = b_size;
@@ -898,7 +882,7 @@ __block_merge(
         __wt_verbose_debug2(session, WT_VERB_BLOCK, "%s: insert range %" PRIdMAX "-%" PRIdMAX,
           el->name, (intmax_t)off, (intmax_t)(off + size));
 
-        return (__block_off_insert(session, el, off, size));
+        return (__wt_extlist_off_insert(session, el, off, size));
     }
 
     /*
@@ -1326,7 +1310,7 @@ __ut_block_ext_insert(WT_SESSION_IMPL *session, WT_EXTLIST *el, WT_EXT *ext)
 int
 __ut_block_off_insert(WT_SESSION_IMPL *session, WT_EXTLIST *el, wt_off_t off, wt_off_t size)
 {
-    return (__block_off_insert(session, el, off, size));
+    return (__wt_extlist_off_insert(session, el, off, size));
 }
 
 bool

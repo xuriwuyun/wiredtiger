@@ -207,3 +207,19 @@ __wt_extlist_ext_insert(WT_SESSION_IMPL *session, WT_EXTLIST *el, WT_EXT *ext)
 
     return (0);
 }
+
+/*
+ * __wt_extlist_off_insert --
+ *     Insert a file range into an extent list.
+ */
+int
+__wt_extlist_off_insert(WT_SESSION_IMPL *session, WT_EXTLIST *el, wt_off_t off, wt_off_t size)
+{
+    WT_EXT *ext;
+
+    WT_RET(__wti_block_ext_alloc(session, &ext));
+    ext->off = off;
+    ext->size = size;
+
+    return (__wt_extlist_ext_insert(session, el, ext));
+}

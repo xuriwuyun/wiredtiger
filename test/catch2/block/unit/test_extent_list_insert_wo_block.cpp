@@ -10,7 +10,7 @@
  * [extent_list]: block_ext.c
  * Test extent list functions part 2.
  *
- * Test insert functions without block: __wt_extlist_ext_insert, and __block_off_insert.
+ * Test insert functions without block: __wt_extlist_ext_insert, and __wt_extlist_off_insert.
  */
 
 #include <algorithm>
