@@ -8,6 +8,8 @@
 
 #include "wt_internal.h"
 
+/* TODO - Make sure to check we're setting dest->complete when remove_holes leaves an empty hole_list */
+
 /*
  * WT_EXT_VERIFY_RET --
  *	Handle extension list errors that would normally panic the system but
