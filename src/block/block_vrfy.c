@@ -248,7 +248,7 @@ __wti_verify_ckpt_load(WT_SESSION_IMPL *session, WT_BLOCK *block, WT_BLOCK_CKPT 
     if (el->offset != WT_BLOCK_INVALID_OFFSET) {
         WT_RET(__wti_block_extlist_read(session, block, el, ci->file_size));
         WT_EXT_FOREACH (ext, el->off)
-            WT_RET(__wti_block_off_remove_overlap(
+            WT_RET(__wti_extlist_off_remove_overlap(
               session, block, &block->verify_alloc, ext->off, ext->size));
         __wti_block_extlist_free(session, el);
     }
@@ -273,7 +273,7 @@ __wti_verify_ckpt_load(WT_SESSION_IMPL *session, WT_BLOCK *block, WT_BLOCK_CKPT 
      * checkpoints.
      */
     if (ci->root_offset != WT_BLOCK_INVALID_OFFSET)
-        WT_RET(__wti_block_off_remove_overlap(
+        WT_RET(__wti_extlist_off_remove_overlap(
           session, block, &block->verify_alloc, ci->root_offset, ci->root_size));
 
     /*

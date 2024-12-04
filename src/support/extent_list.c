@@ -475,3 +475,15 @@ __wt_extlist_overlap_check(WT_SESSION_IMPL *session, WT_EXTLIST *al, WT_EXTLIST 
     return (0);
 }
 #endif
+
+/*
+ * __wti_extlist_off_remove_overlap --
+ *     Remove a range from an extent list, where the range may be part of an overlapping entry.
+ */
+int
+__wti_extlist_off_remove_overlap(
+  WT_SESSION_IMPL *session, bool verify, WT_EXTLIST *el, wt_off_t off, wt_off_t size)
+{
+    WT_ASSERT(session, off != WT_BLOCK_INVALID_OFFSET);
+    return (__wt_extlist_off_remove_overlap(session, verify, el, off, size));
+}

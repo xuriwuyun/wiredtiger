@@ -8,7 +8,8 @@
 
 #include "wt_internal.h"
 
-/* TODO - Make sure to check we're setting dest->complete when remove_holes leaves an empty hole_list */
+/* TODO - Make sure to check we're setting dest->complete when remove_holes leaves an empty
+ * hole_list */
 
 /*
  * WT_EXT_VERIFY_RET --
@@ -74,18 +75,6 @@ __wti_block_misplaced(WT_SESSION_IMPL *session, WT_BLOCK *block, const char *lis
     return (0);
 }
 #endif
-
-/*
- * __wti_block_off_remove_overlap --
- *     Remove a range from an extent list, where the range may be part of an overlapping entry.
- */
-int
-__wti_block_off_remove_overlap(
-  WT_SESSION_IMPL *session, bool verify, WT_EXTLIST *el, wt_off_t off, wt_off_t size)
-{
-    WT_ASSERT(session, off != WT_BLOCK_INVALID_OFFSET);
-    return (__wt_extlist_off_remove_overlap(session, verify, el, off, size));
-}
 
 /*
  * __block_extend --
@@ -284,8 +273,8 @@ __wti_block_off_free(
      * modification). If this extent is referenced in a previous checkpoint, merge into the discard
      * list.
      */
-    if ((ret = __wti_block_off_remove_overlap(session, block, &block->live.alloc, offset, size)) ==
-      0)
+    if ((ret = __wti_extlist_off_remove_overlap(
+           session, block, &block->live.alloc, offset, size)) == 0)
         ret = __block_merge(session, block->verify, &block->live.avail, offset, size);
     else if (ret == WT_NOTFOUND)
         ret = __block_merge(session, block->verify, &block->live.discard, offset, size);
@@ -724,7 +713,7 @@ __wti_block_extlist_read_avail(
      * blocks might be included, remove them.
      */
     WT_ERR_NOTFOUND_OK(
-      __wti_block_off_remove_overlap(session, block, el, el->offset, el->size), false);
+      __wti_extlist_off_remove_overlap(session, block, el, el->offset, el->size), false);
 
 err:
 #ifdef HAVE_DIAGNOSTIC
@@ -882,7 +871,7 @@ __wti_block_extlist_write(
      * any allocation list.
      */
     WT_TRET(
-      __wti_block_off_remove_overlap(session, block, &block->live.alloc, el->offset, el->size));
+      __wti_extlist_off_remove_overlap(session, block, &block->live.alloc, el->offset, el->size));
 
     __wt_verbose(session, WT_VERB_BLOCK, "%s written %" PRIdMAX "/%" PRIu32, el->name,
       (intmax_t)el->offset, el->size);
