@@ -18,10 +18,10 @@ static int __ckpt_update(WT_SESSION_IMPL *, WT_BLOCK *, WT_CKPT *, WT_CKPT *, WT
 static int
 __block_extlist_setup(WT_SESSION_IMPL *session, WT_BLOCK_CKPT *ci, const char *name)
 {
-    WT_RET(__wti_block_extlist_init(session, &ci->alloc, name, "alloc", false));
-    WT_RET(__wti_block_extlist_init(session, &ci->avail, name, "avail", true));
-    WT_RET(__wti_block_extlist_init(session, &ci->discard, name, "discard", false));
-    WT_RET(__wti_block_extlist_init(session, &ci->ckpt_avail, name, "ckpt_avail", true));
+    WT_RET(__wti_extlist_init(session, &ci->alloc, name, "alloc", false));
+    WT_RET(__wti_extlist_init(session, &ci->avail, name, "avail", true));
+    WT_RET(__wti_extlist_init(session, &ci->discard, name, "discard", false));
+    WT_RET(__wti_extlist_init(session, &ci->ckpt_avail, name, "ckpt_avail", true));
 
     return (0);
 }
@@ -644,7 +644,7 @@ __ckpt_process(WT_SESSION_IMPL *session, WT_BLOCK *block, WT_CKPT *ckptbase)
      * list, make sure they get cleaned out.
      */
     __wti_block_extlist_free(session, &ci->ckpt_avail);
-    WT_RET(__wti_block_extlist_init(session, &ci->ckpt_avail, "live", "ckpt_avail", true));
+    WT_RET(__wti_extlist_init(session, &ci->ckpt_avail, "live", "ckpt_avail", true));
     __wti_block_extlist_free(session, &ci->ckpt_alloc);
     __wti_block_extlist_free(session, &ci->ckpt_discard);
 
@@ -869,9 +869,9 @@ live_update:
      * resetting the original, then doing the work later.
      */
     ci->ckpt_alloc = ci->alloc;
-    WT_ERR(__wti_block_extlist_init(session, &ci->alloc, "live", "alloc", false));
+    WT_ERR(__wti_extlist_init(session, &ci->alloc, "live", "alloc", false));
     ci->ckpt_discard = ci->discard;
-    WT_ERR(__wti_block_extlist_init(session, &ci->discard, "live", "discard", false));
+    WT_ERR(__wti_extlist_init(session, &ci->discard, "live", "discard", false));
 
 #ifdef HAVE_DIAGNOSTIC
     /*

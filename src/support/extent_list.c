@@ -678,3 +678,26 @@ __wti_extlist_insert_ext(
      */
     return (__wt_extlist_merge(session, block->verify, el, off, size));
 }
+
+/*
+ * __wti_extlist_init --
+ *     Initialize an extent list.
+ */
+int
+__wti_extlist_init(
+  WT_SESSION_IMPL *session, WT_EXTLIST *el, const char *name, const char *extname, bool track_size)
+{
+    size_t size;
+
+    WT_CLEAR(*el);
+
+    size =
+      (name == NULL ? 0 : strlen(name)) + strlen(".") + (extname == NULL ? 0 : strlen(extname) + 1);
+    WT_RET(__wt_calloc_def(session, size, &el->name));
+    WT_RET(__wt_snprintf(
+      el->name, size, "%s.%s", name == NULL ? "" : name, extname == NULL ? "" : extname));
+
+    el->offset = WT_BLOCK_INVALID_OFFSET;
+    el->track_size = track_size;
+    return (0);
+}
