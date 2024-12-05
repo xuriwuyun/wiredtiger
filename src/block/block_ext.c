@@ -14,6 +14,21 @@
 static int __block_ext_overlap(
   WT_SESSION_IMPL *, WT_BLOCK *, WT_EXTLIST *, WT_EXT **, WT_EXTLIST *, WT_EXT **);
 
+/*
+ * __wti_block_extlist_insert_ext --
+ *     Insert an extent into an extent list, merging if possible.
+ */
+int
+__wti_block_extlist_insert_ext(
+  WT_SESSION_IMPL *session, WT_BLOCK *block, WT_EXTLIST *el, wt_off_t off, wt_off_t size)
+{
+    /*
+     * Callers of this function are expected to have already acquired any locks required to
+     * manipulate the extent list.
+     */
+    return (__wt_extlist_merge(session, block->verify, el, off, size));
+}
+
 #if defined(HAVE_DIAGNOSTIC) || defined(HAVE_UNITTEST)
 /*
  * __wti_block_misplaced --
@@ -227,6 +242,18 @@ __wt_block_free(WT_SESSION_IMPL *session, WT_BLOCK *block, const uint8_t *addr, 
 }
 
 /*
+ * __wti_block_off_remove_overlap --
+ *     Remove a range from an extent list, where the range may be part of an overlapping entry.
+ */
+int
+__wti_block_off_remove_overlap(
+  WT_SESSION_IMPL *session, bool verify, WT_EXTLIST *el, wt_off_t off, wt_off_t size)
+{
+    WT_ASSERT(session, off != WT_BLOCK_INVALID_OFFSET);
+    return (__wt_extlist_off_remove_overlap(session, verify, el, off, size));
+}
+
+/*
  * __wti_block_off_free --
  *     Free a file range to the underlying file.
  */
@@ -256,8 +283,8 @@ __wti_block_off_free(
      * modification). If this extent is referenced in a previous checkpoint, merge into the discard
      * list.
      */
-    if ((ret = __wti_extlist_off_remove_overlap(
-           session, block, &block->live.alloc, offset, size)) == 0)
+    if ((ret = __wti_block_off_remove_overlap(session, block, &block->live.alloc, offset, size)) ==
+      0)
         ret = __wt_extlist_merge(session, block->verify, &block->live.avail, offset, size);
     else if (ret == WT_NOTFOUND)
         ret = __wt_extlist_merge(session, block->verify, &block->live.discard, offset, size);
@@ -511,7 +538,7 @@ __wti_block_extlist_read_avail(
      * blocks might be included, remove them.
      */
     WT_ERR_NOTFOUND_OK(
-      __wti_extlist_off_remove_overlap(session, block, el, el->offset, el->size), false);
+      __wti_block_off_remove_overlap(session, block, el, el->offset, el->size), false);
 
 err:
 #ifdef HAVE_DIAGNOSTIC
@@ -583,7 +610,7 @@ corrupted:
         WT_ERR(func(session, block, el, off, size));
     }
 
-    WT_ERR(__wt_extlist_dump(session, block, el, "read"));
+    WT_ERR(__wt_extlist_dump(session, block->verify_layout, el, "read"));
 
 err:
     __wt_scr_free(session, &tmp);
@@ -606,7 +633,7 @@ __wti_block_extlist_write(
     uint32_t entries;
     uint8_t *p;
 
-    WT_RET(__wt_extlist_dump(session, block, el, "write"));
+    WT_RET(__wt_extlist_dump(session, block->verify_layout, el, "write"));
 
     /*
      * Figure out how many entries we're writing -- if there aren't any entries, there's nothing to
@@ -669,7 +696,7 @@ __wti_block_extlist_write(
      * any allocation list.
      */
     WT_TRET(
-      __wti_extlist_off_remove_overlap(session, block, &block->live.alloc, el->offset, el->size));
+      __wti_block_off_remove_overlap(session, block, &block->live.alloc, el->offset, el->size));
 
     __wt_verbose(session, WT_VERB_BLOCK, "%s written %" PRIdMAX "/%" PRIu32, el->name,
       (intmax_t)el->offset, el->size);

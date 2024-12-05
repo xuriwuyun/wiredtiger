@@ -22,6 +22,7 @@ header_mappings = {
     "dhandle.h": "btree",
     "dlh.h": "include",
     "error.h": "include",
+    "extent_list.h": "support",
     "futex.h": "os_layer",
     "gcc.h": "include",
     "generation.h": "support",

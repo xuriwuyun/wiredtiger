@@ -389,7 +389,7 @@ __wt_extlist_off_remove_overlap(
          * Calculate overlapping extents. There's no initial overlap since the after extent
          * presumably cannot begin before "off".
          */
-        a_off = WT_BLOCK_INVALID_OFFSET;
+        a_off = 0;
         a_size = 0;
         b_off = off + size;
         b_size = ext->size - (b_off - ext->off);
@@ -460,18 +460,6 @@ __wt_extlist_overlap_check(WT_SESSION_IMPL *session, WT_EXTLIST *al, WT_EXTLIST 
     return (0);
 }
 #endif
-
-/*
- * __wti_extlist_off_remove_overlap --
- *     Remove a range from an extent list, where the range may be part of an overlapping entry.
- */
-int
-__wti_extlist_off_remove_overlap(
-  WT_SESSION_IMPL *session, bool verify, WT_EXTLIST *el, wt_off_t off, wt_off_t size)
-{
-    WT_ASSERT(session, off != WT_BLOCK_INVALID_OFFSET);
-    return (__wt_extlist_off_remove_overlap(session, verify, el, off, size));
-}
 
 /*
  * __wt_extlist_merge --
@@ -645,26 +633,6 @@ __wt_extlist_append(
 }
 
 /*
- * __wti_extlist_insert_ext --
- *     Insert an extent into an extent list, merging if possible.
- */
-int
-__wti_extlist_insert_ext(
-  WT_SESSION_IMPL *session, WT_BLOCK *block, WT_EXTLIST *el, wt_off_t off, wt_off_t size)
-{
-    /*
-     * There are currently two copies of this function (this code is a one- liner that calls the
-     * internal version of the function, which means the compiler should compress out the function
-     * call). It's that way because the interface is still fluid, I'm not convinced there won't be a
-     * need for a functional split between the internal and external versions in the future.
-     *
-     * Callers of this function are expected to have already acquired any locks required to
-     * manipulate the extent list.
-     */
-    return (__wt_extlist_merge(session, block->verify, el, off, size));
-}
-
-/*
  * __wti_extlist_init --
  *     Initialize an extent list.
  */
@@ -682,7 +650,7 @@ __wti_extlist_init(
     WT_RET(__wt_snprintf(
       el->name, size, "%s.%s", name == NULL ? "" : name, extname == NULL ? "" : extname));
 
-    el->offset = WT_BLOCK_INVALID_OFFSET;
+    el->offset = 0;
     el->track_size = track_size;
     return (0);
 }
@@ -717,7 +685,7 @@ __wti_extlist_free(WT_SESSION_IMPL *session, WT_EXTLIST *el)
  *     Dump an extent list as verbose messages.
  */
 int
-__wt_extlist_dump(WT_SESSION_IMPL *session, WT_BLOCK *block, WT_EXTLIST *el, const char *tag)
+__wt_extlist_dump(WT_SESSION_IMPL *session, bool verify_layout, WT_EXTLIST *el, const char *tag)
 {
     WT_DECL_ITEM(t1);
     WT_DECL_ITEM(t2);
@@ -728,12 +696,15 @@ __wt_extlist_dump(WT_SESSION_IMPL *session, WT_BLOCK *block, WT_EXTLIST *el, con
     u_int i;
     const char *sep;
 
-    if (!block->verify_layout &&
-      !WT_VERBOSE_LEVEL_ISSET(session, WT_VERB_BLOCK, WT_VERBOSE_DEBUG_2))
+    /*
+     * FIXME-WT-13797 Think about verbose messages. We don't want to dump messages for the block
+     * extents when debugging live restore and vice versa.
+     */
+    if (!verify_layout && !WT_VERBOSE_LEVEL_ISSET(session, WT_VERB_BLOCK, WT_VERBOSE_DEBUG_2))
         return (0);
 
     WT_ERR(__wt_scr_alloc(session, 0, &t1));
-    if (block->verify_layout)
+    if (verify_layout)
         level = WT_VERBOSE_NOTICE;
     else
         level = WT_VERBOSE_DEBUG_2;
