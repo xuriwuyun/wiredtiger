@@ -23,7 +23,7 @@
 
 #include "wt_internal.h"
 #include "../util_block.h"
-#include "../utils_extlist.h"
+#include "../../support/utils_extlist.h"
 #include "../../wrappers/mock_session.h"
 
 const std::string ALLOCATION_SIZE = "256";

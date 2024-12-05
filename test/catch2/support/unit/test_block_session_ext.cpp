@@ -16,7 +16,7 @@
  */
 #include <catch2/catch.hpp>
 
-#include "../util_block.h"
+#include "../../block/util_block.h"
 #include "../../wrappers/mock_session.h"
 
 TEST_CASE("Block session: __block_ext_alloc", "[block_session_ext]")

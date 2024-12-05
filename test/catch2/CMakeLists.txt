@@ -28,16 +28,16 @@ else()
         block/unit/test_block_ckpt.cpp
         block/unit/test_block_file.cpp
         block/unit/test_block_other.cpp
-        block/unit/test_block_session_bms.cpp
-        block/unit/test_block_session_ext.cpp
-        block/unit/test_block_session_size.cpp
-        block/unit/test_extent_list.cpp
-        block/unit/test_extent_list_insert_wo_block.cpp
-        block/unit/test_extent_list_search.cpp
-        block/unit/test_extent_list_insert_block.cpp
         cursors/api/test_bulk_cursor.cpp
         cursors/unit/test_bounds_restore.cpp
         cursors/unit/test_cursor_get_raw_key_value.cpp
+        support/unit/test_block_session_bms.cpp
+        support/unit/test_block_session_ext.cpp
+        support/unit/test_block_session_size.cpp
+        support/unit/test_extent_list.cpp
+        support/unit/test_extent_list_insert_wo_block.cpp
+        support/unit/test_extent_list_search.cpp
+        support/unit/test_extent_list_insert_block.cpp
     )
 endif()
 
@@ -45,7 +45,7 @@ set(unittest_sources
     main.cpp
     utils.cpp
     block/util_block.cpp
-    block/utils_extlist.cpp
+    support/utils_extlist.cpp
     wrappers/block_mods.cpp
     wrappers/config_parser.cpp
     wrappers/connection_wrapper.cpp
