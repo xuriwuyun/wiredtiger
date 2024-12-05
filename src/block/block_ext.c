@@ -493,26 +493,6 @@ __block_ext_overlap(WT_SESSION_IMPL *session, WT_BLOCK *block, WT_EXTLIST *ael, 
 }
 
 /*
- * __wti_block_insert_ext --
- *     Insert an extent into an extent list, merging if possible.
- */
-int
-__wti_block_insert_ext(
-  WT_SESSION_IMPL *session, WT_BLOCK *block, WT_EXTLIST *el, wt_off_t off, wt_off_t size)
-{
-    /*
-     * There are currently two copies of this function (this code is a one- liner that calls the
-     * internal version of the function, which means the compiler should compress out the function
-     * call). It's that way because the interface is still fluid, I'm not convinced there won't be a
-     * need for a functional split between the internal and external versions in the future.
-     *
-     * Callers of this function are expected to have already acquired any locks required to
-     * manipulate the extent list.
-     */
-    return (__wt_extlist_merge(session, block->verify, el, off, size));
-}
-
-/*
  * __wti_block_extlist_read_avail --
  *     Read an avail extent list, includes minor special handling.
  */

@@ -368,7 +368,8 @@ __ckpt_extlist_fblocks(WT_SESSION_IMPL *session, WT_BLOCK *block, WT_EXTLIST *el
      * list is used to decide if the file can be truncated, and we can't truncate any part of the
      * file that contains a previous checkpoint's extents.
      */
-    return (__wti_block_insert_ext(session, block, &block->live.ckpt_avail, el->offset, el->size));
+    return (
+      __wti_extlist_insert_ext(session, block, &block->live.ckpt_avail, el->offset, el->size));
 }
 
 /*
@@ -767,7 +768,7 @@ __ckpt_process(WT_SESSION_IMPL *session, WT_BLOCK *block, WT_CKPT *ckptbase)
          */
         if (a->root_offset != WT_BLOCK_INVALID_OFFSET)
             WT_ERR(
-              __wti_block_insert_ext(session, block, &a->discard, a->root_offset, a->root_size));
+              __wti_extlist_insert_ext(session, block, &a->discard, a->root_offset, a->root_size));
 
         /*
          * Free the blocks used to hold the "from" checkpoint's extent lists, including the avail

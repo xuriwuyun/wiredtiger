@@ -48,7 +48,8 @@ __wt_block_salvage_start(WT_SESSION_IMPL *session, WT_BLOCK *block)
      * The only checkpoint extent we care about is the allocation list. Start with the entire file
      * on the allocation list, we'll "free" any blocks we don't want as we process the file.
      */
-    WT_RET(__wti_block_insert_ext(session, block, &block->live.alloc, allocsize, len - allocsize));
+    WT_RET(
+      __wti_extlist_insert_ext(session, block, &block->live.alloc, allocsize, len - allocsize));
 
     /* Salvage performs a checkpoint but doesn't start or resolve it. */
     WT_ASSERT(session, block->ckpt_state == WT_CKPT_NONE);
