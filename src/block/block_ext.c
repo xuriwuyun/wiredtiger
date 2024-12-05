@@ -24,7 +24,6 @@
                            __wt_panic(session, WT_PANIC, "block manager extension list failure")); \
     } while (0)
 
-static int __block_append(WT_SESSION_IMPL *, bool, WT_EXTLIST *, wt_off_t, wt_off_t);
 static int __block_ext_overlap(
   WT_SESSION_IMPL *, WT_BLOCK *, WT_EXTLIST *, WT_EXT **, WT_EXTLIST *, WT_EXT **);
 static int __block_extlist_dump(WT_SESSION_IMPL *, WT_BLOCK *, WT_EXTLIST *, const char *);
@@ -160,7 +159,7 @@ __wti_block_alloc(WT_SESSION_IMPL *session, WT_BLOCK *block, wt_off_t *offp, wt_
 append:
             el = &block->live.alloc;
             WT_RET(__block_extend(session, block, el, offp, size));
-            WT_RET(__block_append(session, block->verify, el, *offp, (wt_off_t)size));
+            WT_RET(__wt_extlist_append(session, block->verify, el, *offp, (wt_off_t)size));
             return (0);
         }
 
@@ -494,57 +493,6 @@ __block_ext_overlap(WT_SESSION_IMPL *session, WT_BLOCK *block, WT_EXTLIST *ael, 
 }
 
 /*
- * __block_append --
- *     Append a new entry to the allocation list.
- */
-static int
-__block_append(WT_SESSION_IMPL *session, bool verify, WT_EXTLIST *el, wt_off_t off, wt_off_t size)
-{
-    WT_EXT **astack[WT_SKIP_MAXDEPTH], *last_ext;
-    u_int i;
-
-    WT_UNUSED(verify);
-    WT_ASSERT(session, el->track_size == 0);
-
-    /*
-     * Identical to __wt_extlist_merge, when we know the file is being extended, that is, the
-     * information is either going to be used to extend the last object on the list, or become a new
-     * object ending the list.
-     *
-     * The terminating element of the list is cached, check it; otherwise, get a stack for the last
-     * object in the skiplist, check for a simple extension, and otherwise append a new structure.
-     */
-    if ((last_ext = el->last) != NULL && last_ext->off + last_ext->size == off)
-        /* Extend the last object on the list. off is adjacent to the end of the last extent.*/
-        last_ext->size += size;
-    else {
-        /* Update last_ext and, in case appending an extent, determine where to append an extent. */
-        last_ext = __wt_extlist_off_srch_last(el->off, astack);
-        if (last_ext != NULL && last_ext->off + last_ext->size == off)
-            /* Extend the last object on the list. off is adjacent to the end of the last extent.*/
-            last_ext->size += size;
-        else {
-            if (last_ext != NULL)
-                /* Assert that this is appending an extent after the last extent. */
-                WT_ASSERT(session, last_ext->off + last_ext->size < off);
-            WT_RET(__wti_block_ext_alloc(session, &last_ext));
-            last_ext->off = off;
-            last_ext->size = size;
-
-            for (i = 0; i < last_ext->depth; ++i)
-                *astack[i] = last_ext;
-            ++el->entries;
-        }
-
-        /* Update the cached end-of-list */
-        el->last = last_ext;
-    }
-    el->bytes += (uint64_t)size;
-
-    return (0);
-}
-
-/*
  * __wti_block_insert_ext --
  *     Insert an extent into an extent list, merging if possible.
  */
@@ -641,7 +589,7 @@ __wti_block_extlist_read(
      * fast-path append code doesn't support that, it's limited to offset. The test of "track size"
      * is short-hand for "are we reading the available-blocks list".
      */
-    func = el->track_size == 0 ? __block_append : __wt_extlist_merge;
+    func = el->track_size == 0 ? __wt_extlist_append : __wt_extlist_merge;
     for (;;) {
         WT_ERR(__wt_extlist_read_pair(&p, &off, &size));
         if (off == WT_BLOCK_INVALID_OFFSET)
@@ -983,7 +931,7 @@ int
 __ut_block_append(
   WT_SESSION_IMPL *session, WT_BLOCK *block, WT_EXTLIST *el, wt_off_t off, wt_off_t size)
 {
-    return (__block_append(session, block->verify, el, off, size));
+    return (__wt_extlist_append(session, block->verify, el, off, size));
 }
 
 int

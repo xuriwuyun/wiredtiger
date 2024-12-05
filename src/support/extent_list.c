@@ -606,3 +606,55 @@ __wti_extlist_merge(WT_SESSION_IMPL *session, bool verify, WT_EXTLIST *a, WT_EXT
 
     return (0);
 }
+
+/*
+ * __wt_extlist_append --
+ *     Append a new entry to the allocation list.
+ */
+int
+__wt_extlist_append(
+  WT_SESSION_IMPL *session, bool verify, WT_EXTLIST *el, wt_off_t off, wt_off_t size)
+{
+    WT_EXT **astack[WT_SKIP_MAXDEPTH], *last_ext;
+    u_int i;
+
+    WT_UNUSED(verify);
+    WT_ASSERT(session, el->track_size == 0);
+
+    /*
+     * Identical to __wt_extlist_merge, when we know the file is being extended, that is, the
+     * information is either going to be used to extend the last object on the list, or become a new
+     * object ending the list.
+     *
+     * The terminating element of the list is cached, check it; otherwise, get a stack for the last
+     * object in the skiplist, check for a simple extension, and otherwise append a new structure.
+     */
+    if ((last_ext = el->last) != NULL && last_ext->off + last_ext->size == off)
+        /* Extend the last object on the list. off is adjacent to the end of the last extent.*/
+        last_ext->size += size;
+    else {
+        /* Update last_ext and, in case appending an extent, determine where to append an extent. */
+        last_ext = __wt_extlist_off_srch_last(el->off, astack);
+        if (last_ext != NULL && last_ext->off + last_ext->size == off)
+            /* Extend the last object on the list. off is adjacent to the end of the last extent.*/
+            last_ext->size += size;
+        else {
+            if (last_ext != NULL)
+                /* Assert that this is appending an extent after the last extent. */
+                WT_ASSERT(session, last_ext->off + last_ext->size < off);
+            WT_RET(__wti_block_ext_alloc(session, &last_ext));
+            last_ext->off = off;
+            last_ext->size = size;
+
+            for (i = 0; i < last_ext->depth; ++i)
+                *astack[i] = last_ext;
+            ++el->entries;
+        }
+
+        /* Update the cached end-of-list */
+        el->last = last_ext;
+    }
+    el->bytes += (uint64_t)size;
+
+    return (0);
+}
