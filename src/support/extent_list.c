@@ -548,6 +548,7 @@ __wti_extlist_merge(WT_SESSION_IMPL *session, bool verify, WT_EXTLIST *a, WT_EXT
     WT_EXTLIST tmp;
     u_int i;
 
+    /* FIXME-WT-13797 Reference to live lock. */
     /*
      * We should hold the live lock here when running on the live checkpoint. But there is no easy
      * way to determine if the checkpoint is live so we cannot assert the locking here.
