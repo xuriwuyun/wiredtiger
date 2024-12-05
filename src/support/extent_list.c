@@ -538,11 +538,11 @@ __wt_extlist_merge_int(
 }
 
 /*
- * __wti_extlist_merge --
+ * __wt_extlist_merge --
  *     Merge one extent list into another.
  */
 int
-__wti_extlist_merge(WT_SESSION_IMPL *session, bool verify, WT_EXTLIST *a, WT_EXTLIST *b)
+__wt_extlist_merge(WT_SESSION_IMPL *session, bool verify, WT_EXTLIST *a, WT_EXTLIST *b)
 {
     WT_EXT *ext;
     WT_EXTLIST tmp;

@@ -782,9 +782,9 @@ __ckpt_process(WT_SESSION_IMPL *session, WT_BLOCK *block, WT_CKPT *ckptbase)
          * Roll the "from" alloc and discard extent lists into the "to" checkpoint's lists.
          */
         if (a->alloc.entries != 0)
-            WT_ERR(__wti_extlist_merge(session, block->verify, &a->alloc, &b->alloc));
+            WT_ERR(__wt_extlist_merge(session, block->verify, &a->alloc, &b->alloc));
         if (a->discard.entries != 0)
-            WT_ERR(__wti_extlist_merge(session, block->verify, &a->discard, &b->discard));
+            WT_ERR(__wt_extlist_merge(session, block->verify, &a->discard, &b->discard));
 
         /*
          * If the "to" checkpoint is also being deleted, we're done with it, it's merged into some
@@ -1061,7 +1061,7 @@ __wt_block_checkpoint_resolve(WT_SESSION_IMPL *session, WT_BLOCK *block, bool fa
     }
     WT_ERR(ret);
 
-    if ((ret = __wti_extlist_merge(session, block->verify, &ci->ckpt_avail, &ci->avail)) != 0) {
+    if ((ret = __wt_extlist_merge(session, block->verify, &ci->ckpt_avail, &ci->avail)) != 0) {
         ret = __wt_panic(
           session, ret, "%s: fatal checkpoint failure during extent list merge", block->name);
         __wt_bm_set_readonly(session);

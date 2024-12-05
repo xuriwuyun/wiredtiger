@@ -241,7 +241,7 @@ __wti_verify_ckpt_load(WT_SESSION_IMPL *session, WT_BLOCK *block, WT_BLOCK_CKPT 
     el = &ci->alloc;
     if (el->offset != WT_BLOCK_INVALID_OFFSET) {
         WT_RET(__wti_block_extlist_read(session, block, el, ci->file_size));
-        WT_RET(__wti_extlist_merge(session, block->verify, el, &block->verify_alloc));
+        WT_RET(__wt_extlist_merge(session, block->verify, el, &block->verify_alloc));
         __wti_extlist_free(session, el);
     }
     el = &ci->discard;
