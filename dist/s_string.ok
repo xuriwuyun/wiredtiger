@@ -530,7 +530,6 @@ blkincr
 blkmod
 blkmods
 bm
-bms
 bnd
 bool
 boolean
@@ -748,6 +747,7 @@ exe
 existp
 extern
 extlist
+extlist_cache
 fadvise
 fahrenheit
 failpoint

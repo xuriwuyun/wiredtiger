@@ -32,14 +32,14 @@ free_ext_block(WT_EXT *ext)
 }
 
 void
-validate_ext_list(WT_EXTLIST_CACHE *bms, int expected_items)
+validate_ext_list(WT_EXTLIST_CACHE *extlist_cache, int expected_items)
 {
-    REQUIRE(bms != nullptr);
-    REQUIRE(bms->ext_cache_cnt == expected_items);
-    if (bms->ext_cache_cnt == 0)
-        REQUIRE(bms->ext_cache == nullptr);
+    REQUIRE(extlist_cache != nullptr);
+    REQUIRE(extlist_cache->ext_cache_cnt == expected_items);
+    if (extlist_cache->ext_cache_cnt == 0)
+        REQUIRE(extlist_cache->ext_cache == nullptr);
 
-    WT_EXT *curr = bms->ext_cache;
+    WT_EXT *curr = extlist_cache->ext_cache;
     for (int i = 0; i < expected_items; i++) {
         validate_ext_block(curr);
         curr = curr->next[0];
@@ -61,14 +61,14 @@ validate_and_free_size_block(WT_SIZE *size)
 }
 
 void
-validate_size_list(WT_EXTLIST_CACHE *bms, int expected_items)
+validate_size_list(WT_EXTLIST_CACHE *extlist_cache, int expected_items)
 {
-    REQUIRE(bms != nullptr);
-    if (bms->sz_cache_cnt == 0)
-        REQUIRE(bms->sz_cache == nullptr);
+    REQUIRE(extlist_cache != nullptr);
+    if (extlist_cache->sz_cache_cnt == 0)
+        REQUIRE(extlist_cache->sz_cache == nullptr);
 
-    REQUIRE(bms->sz_cache_cnt == expected_items);
-    WT_SIZE *curr = bms->sz_cache;
+    REQUIRE(extlist_cache->sz_cache_cnt == expected_items);
+    WT_SIZE *curr = extlist_cache->sz_cache;
     for (int i = 0; i < expected_items; i++) {
         validate_size_block(curr);
         curr = curr->next[0];

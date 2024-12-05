@@ -35,15 +35,15 @@ int
 __wti_extlist_cache_ext_alloc(WT_SESSION_IMPL *session, WT_EXT **extp)
 {
     WT_EXT *ext;
-    WT_EXTLIST_CACHE *bms;
+    WT_EXTLIST_CACHE *extlist_cache;
     u_int i;
 
-    bms = session->extlist_cache;
+    extlist_cache = session->extlist_cache;
 
     /* Return a WT_EXT structure for use from a cached list. */
-    if (bms != NULL && bms->ext_cache != NULL) {
-        ext = bms->ext_cache;
-        bms->ext_cache = ext->next[0];
+    if (extlist_cache != NULL && extlist_cache->ext_cache != NULL) {
+        ext = extlist_cache->ext_cache;
+        extlist_cache->ext_cache = ext->next[0];
 
         /* Clear any left-over references. */
         for (i = 0; i < ext->depth; ++i)
@@ -52,8 +52,8 @@ __wti_extlist_cache_ext_alloc(WT_SESSION_IMPL *session, WT_EXT **extp)
         /*
          * The count is advisory to minimize our exposure to bugs, but don't let it go negative.
          */
-        if (bms->ext_cache_cnt > 0)
-            --bms->ext_cache_cnt;
+        if (extlist_cache->ext_cache_cnt > 0)
+            --extlist_cache->ext_cache_cnt;
 
         *extp = ext;
         return (0);
@@ -70,15 +70,15 @@ static int
 __extlist_cache_ext_prealloc(WT_SESSION_IMPL *session, u_int max)
 {
     WT_EXT *ext;
-    WT_EXTLIST_CACHE *bms;
+    WT_EXTLIST_CACHE *extlist_cache;
 
-    bms = session->extlist_cache;
+    extlist_cache = session->extlist_cache;
 
-    for (; bms->ext_cache_cnt < max; ++bms->ext_cache_cnt) {
+    for (; extlist_cache->ext_cache_cnt < max; ++extlist_cache->ext_cache_cnt) {
         WT_RET(__extlist_cache_ext_alloc(session, &ext));
 
-        ext->next[0] = bms->ext_cache;
-        bms->ext_cache = ext;
+        ext->next[0] = extlist_cache->ext_cache;
+        extlist_cache->ext_cache = ext;
     }
     return (0);
 }
@@ -90,15 +90,15 @@ __extlist_cache_ext_prealloc(WT_SESSION_IMPL *session, u_int max)
 void
 __wt_extlist_cache_ext_free(WT_SESSION_IMPL *session, WT_EXT **ext)
 {
-    WT_EXTLIST_CACHE *bms;
+    WT_EXTLIST_CACHE *extlist_cache;
 
-    if ((bms = session->extlist_cache) == NULL)
+    if ((extlist_cache = session->extlist_cache) == NULL)
         __wt_free(session, *ext);
     else {
-        (*ext)->next[0] = bms->ext_cache;
-        bms->ext_cache = *ext;
+        (*ext)->next[0] = extlist_cache->ext_cache;
+        extlist_cache->ext_cache = *ext;
 
-        ++bms->ext_cache_cnt;
+        ++extlist_cache->ext_cache_cnt;
     }
 }
 
@@ -110,24 +110,24 @@ static int
 __extlist_cache_ext_discard(WT_SESSION_IMPL *session, u_int max)
 {
     WT_EXT *ext, *next;
-    WT_EXTLIST_CACHE *bms;
+    WT_EXTLIST_CACHE *extlist_cache;
 
-    bms = session->extlist_cache;
-    if (max != 0 && bms->ext_cache_cnt <= max)
+    extlist_cache = session->extlist_cache;
+    if (max != 0 && extlist_cache->ext_cache_cnt <= max)
         return (0);
 
-    for (ext = bms->ext_cache; ext != NULL;) {
+    for (ext = extlist_cache->ext_cache; ext != NULL;) {
         next = ext->next[0];
         __wt_free(session, ext);
         ext = next;
 
-        --bms->ext_cache_cnt;
-        if (max != 0 && bms->ext_cache_cnt <= max)
+        --extlist_cache->ext_cache_cnt;
+        if (max != 0 && extlist_cache->ext_cache_cnt <= max)
             break;
     }
-    bms->ext_cache = ext;
+    extlist_cache->ext_cache = ext;
 
-    if (max == 0 && bms->ext_cache_cnt != 0)
+    if (max == 0 && extlist_cache->ext_cache_cnt != 0)
         WT_RET_MSG(session, WT_ERROR, "incorrect count in session handle's block manager cache");
     return (0);
 }
@@ -149,20 +149,20 @@ __extlist_cache_size_alloc(WT_SESSION_IMPL *session, WT_SIZE **szp)
 int
 __wti_extlist_cache_size_alloc(WT_SESSION_IMPL *session, WT_SIZE **szp)
 {
-    WT_EXTLIST_CACHE *bms;
+    WT_EXTLIST_CACHE *extlist_cache;
 
-    bms = session->extlist_cache;
+    extlist_cache = session->extlist_cache;
 
     /* Return a WT_SIZE structure for use from a cached list. */
-    if (bms != NULL && bms->sz_cache != NULL) {
-        (*szp) = bms->sz_cache;
-        bms->sz_cache = bms->sz_cache->next[0];
+    if (extlist_cache != NULL && extlist_cache->sz_cache != NULL) {
+        (*szp) = extlist_cache->sz_cache;
+        extlist_cache->sz_cache = extlist_cache->sz_cache->next[0];
 
         /*
          * The count is advisory to minimize our exposure to bugs, but don't let it go negative.
          */
-        if (bms->sz_cache_cnt > 0)
-            --bms->sz_cache_cnt;
+        if (extlist_cache->sz_cache_cnt > 0)
+            --extlist_cache->sz_cache_cnt;
         return (0);
     }
 
@@ -176,16 +176,16 @@ __wti_extlist_cache_size_alloc(WT_SESSION_IMPL *session, WT_SIZE **szp)
 static int
 __extlist_cache_size_prealloc(WT_SESSION_IMPL *session, u_int max)
 {
-    WT_EXTLIST_CACHE *bms;
+    WT_EXTLIST_CACHE *extlist_cache;
     WT_SIZE *sz;
 
-    bms = session->extlist_cache;
+    extlist_cache = session->extlist_cache;
 
-    for (; bms->sz_cache_cnt < max; ++bms->sz_cache_cnt) {
+    for (; extlist_cache->sz_cache_cnt < max; ++extlist_cache->sz_cache_cnt) {
         WT_RET(__extlist_cache_size_alloc(session, &sz));
 
-        sz->next[0] = bms->sz_cache;
-        bms->sz_cache = sz;
+        sz->next[0] = extlist_cache->sz_cache;
+        extlist_cache->sz_cache = sz;
     }
     return (0);
 }
@@ -197,15 +197,15 @@ __extlist_cache_size_prealloc(WT_SESSION_IMPL *session, u_int max)
 void
 __wti_extlist_cache_size_free(WT_SESSION_IMPL *session, WT_SIZE **sz)
 {
-    WT_EXTLIST_CACHE *bms;
+    WT_EXTLIST_CACHE *extlist_cache;
 
-    if ((bms = session->extlist_cache) == NULL)
+    if ((extlist_cache = session->extlist_cache) == NULL)
         __wt_free(session, *sz);
     else {
-        (*sz)->next[0] = bms->sz_cache;
-        bms->sz_cache = *sz;
+        (*sz)->next[0] = extlist_cache->sz_cache;
+        extlist_cache->sz_cache = *sz;
 
-        ++bms->sz_cache_cnt;
+        ++extlist_cache->sz_cache_cnt;
     }
 }
 
@@ -216,25 +216,25 @@ __wti_extlist_cache_size_free(WT_SESSION_IMPL *session, WT_SIZE **sz)
 static int
 __extlist_cache_size_discard(WT_SESSION_IMPL *session, u_int max)
 {
-    WT_EXTLIST_CACHE *bms;
+    WT_EXTLIST_CACHE *extlist_cache;
     WT_SIZE *nsz, *sz;
 
-    bms = session->extlist_cache;
-    if (max != 0 && bms->sz_cache_cnt <= max)
+    extlist_cache = session->extlist_cache;
+    if (max != 0 && extlist_cache->sz_cache_cnt <= max)
         return (0);
 
-    for (sz = bms->sz_cache; sz != NULL;) {
+    for (sz = extlist_cache->sz_cache; sz != NULL;) {
         nsz = sz->next[0];
         __wt_free(session, sz);
         sz = nsz;
 
-        --bms->sz_cache_cnt;
-        if (max != 0 && bms->sz_cache_cnt <= max)
+        --extlist_cache->sz_cache_cnt;
+        if (max != 0 && extlist_cache->sz_cache_cnt <= max)
             break;
     }
-    bms->sz_cache = sz;
+    extlist_cache->sz_cache = sz;
 
-    if (max == 0 && bms->sz_cache_cnt != 0)
+    if (max == 0 && extlist_cache->sz_cache_cnt != 0)
         WT_RET_MSG(session, WT_ERROR, "incorrect count in session handle's block manager cache");
     return (0);
 }
