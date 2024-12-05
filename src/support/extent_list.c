@@ -462,11 +462,11 @@ __wt_extlist_overlap_check(WT_SESSION_IMPL *session, WT_EXTLIST *al, WT_EXTLIST 
 #endif
 
 /*
- * __wt_extlist_merge --
+ * __wt_extlist_merge_int --
  *     Insert an extent into an extent list, merging if possible (internal version).
  */
 int
-__wt_extlist_merge(
+__wt_extlist_merge_int(
   WT_SESSION_IMPL *session, bool verify, WT_EXTLIST *el, wt_off_t off, wt_off_t size)
 {
     WT_EXT *after, *before, *ext;
@@ -576,7 +576,7 @@ __wti_extlist_merge(WT_SESSION_IMPL *session, bool verify, WT_EXTLIST *a, WT_EXT
     }
 
     WT_EXT_FOREACH (ext, a->off)
-        WT_RET(__wt_extlist_merge(session, verify, b, ext->off, ext->size));
+        WT_RET(__wt_extlist_merge_int(session, verify, b, ext->off, ext->size));
 
     return (0);
 }
@@ -596,7 +596,7 @@ __wt_extlist_append(
     WT_ASSERT(session, el->track_size == 0);
 
     /*
-     * Identical to __wt_extlist_merge, when we know the file is being extended, that is, the
+     * Identical to __wt_extlist_merge_int, when we know the file is being extended, that is, the
      * information is either going to be used to extend the last object on the list, or become a new
      * object ending the list.
      *
