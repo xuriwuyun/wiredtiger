@@ -11,19 +11,6 @@
 /* TODO - Make sure to check we're setting dest->complete when remove_holes leaves an empty
  * hole_list */
 
-/*
- * WT_EXT_VERIFY_RET --
- *	Handle extension list errors that would normally panic the system but
- * which should fail gracefully when verifying.
- */
-#define WT_EXT_VERIFY_RET(session, verify, v, ...)                                                 \
-    do {                                                                                           \
-        int __ret = (v);                                                                           \
-        __wt_err(session, __ret, __VA_ARGS__);                                                     \
-        return ((verify) ? __ret :                                                                 \
-                           __wt_panic(session, WT_PANIC, "block manager extension list failure")); \
-    } while (0)
-
 static int __block_ext_overlap(
   WT_SESSION_IMPL *, WT_BLOCK *, WT_EXTLIST *, WT_EXT **, WT_EXTLIST *, WT_EXT **);
 
@@ -249,7 +236,6 @@ __wti_block_off_free(
 {
     WT_DECL_RET;
 
-    // FIXME-WT-13797 Make a block/ wrapper for this func
     /* The live lock must be locked, except for when we are running salvage. */
     if (!F_ISSET(S2BT(session), WT_BTREE_SALVAGE))
         WT_ASSERT_SPINLOCK_OWNED(session, &block->live_lock);
@@ -327,7 +313,11 @@ __block_ext_overlap(WT_SESSION_IMPL *session, WT_BLOCK *block, WT_EXTLIST *ael, 
 
     WT_ASSERT_SPINLOCK_OWNED(session, &block->live_lock);
 
-    // FIXME-WT-13797 - Make a generic overlap func and keep this as a wrapper
+    /*
+     * CODE_CHANGE - This is operating on extent lists but the behavior is to find overlaps of the
+     * alloc and discard lists, placing the results into the avail list. I don't think it's worth
+     * the effort to generalize this and move the overlap logic into extent_list.c
+     */
     avail = &block->live.ckpt_avail;
 
     /*
@@ -533,7 +523,7 @@ err:
 
 /*
  * __wti_block_extlist_read --
- *     Read an extent list.
+ *     Read an extent list from disk.
  */
 int
 __wti_block_extlist_read(

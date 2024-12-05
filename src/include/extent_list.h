@@ -9,6 +9,19 @@
 #pragma once
 
 /*
+ * WT_EXT_VERIFY_RET --
+ *	Handle extension list errors that would normally panic the system but
+ * which should fail gracefully when verifying.
+ */
+#define WT_EXT_VERIFY_RET(session, verify, v, ...)                                                 \
+    do {                                                                                           \
+        int __ret = (v);                                                                           \
+        __wt_err(session, __ret, __VA_ARGS__);                                                     \
+        return ((verify) ? __ret :                                                                 \
+                           __wt_panic(session, WT_PANIC, "block manager extension list failure")); \
+    } while (0)
+
+/*
  * An extent list is based on two skiplists: first, a by-offset list linking WT_EXT elements and
  * sorted by file offset (low-to-high), second, a by-size list linking WT_SIZE elements and sorted
  * by chunk size (low-to-high).

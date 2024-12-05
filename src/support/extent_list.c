@@ -8,21 +8,6 @@
 
 #include "wt_internal.h"
 
-/* FIXME-WT-13797 Remove this macro from block_ext.c when fully migrated. */
-
-/*
- * WT_EXT_VERIFY_RET --
- *	Handle extension list errors that would normally panic the system but
- * which should fail gracefully when verifying.
- */
-#define WT_EXT_VERIFY_RET(session, verify, v, ...)                                                 \
-    do {                                                                                           \
-        int __ret = (v);                                                                           \
-        __wt_err(session, __ret, __VA_ARGS__);                                                     \
-        return ((verify) ? __ret :                                                                 \
-                           __wt_panic(session, WT_PANIC, "block manager extension list failure")); \
-    } while (0)
-
 /*
  * __wt_extlist_off_srch_last --
  *     Return the last element in the list, along with a stack for appending.
