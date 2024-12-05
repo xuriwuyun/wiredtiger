@@ -84,11 +84,11 @@ __extlist_cache_ext_prealloc(WT_SESSION_IMPL *session, u_int max)
 }
 
 /*
- * __wti_extlist_cache_ext_free --
+ * __wt_extlist_cache_ext_free --
  *     Add a WT_EXT structure to the cached list.
  */
 void
-__wti_extlist_cache_ext_free(WT_SESSION_IMPL *session, WT_EXT **ext)
+__wt_extlist_cache_ext_free(WT_SESSION_IMPL *session, WT_EXT **ext)
 {
     WT_EXTLIST_CACHE *bms;
 
@@ -260,11 +260,11 @@ __extlist_cache_manager_session_cleanup(WT_SESSION_IMPL *session)
 }
 
 /*
- * __wti_extlist_cache_ext_prealloc --
+ * __wt_extlist_cache_ext_prealloc --
  *     Pre-allocate WT_EXT and WT_SIZE structures.
  */
 int
-__wti_extlist_cache_ext_prealloc(WT_SESSION_IMPL *session, u_int max)
+__wt_extlist_cache_ext_prealloc(WT_SESSION_IMPL *session, u_int max)
 {
     if (session->extlist_cache == NULL) {
         WT_RET(__wt_calloc(session, 1, sizeof(WT_EXTLIST_CACHE), &session->extlist_cache));
@@ -276,11 +276,11 @@ __wti_extlist_cache_ext_prealloc(WT_SESSION_IMPL *session, u_int max)
 }
 
 /*
- * __wti_extlist_cache_ext_discard --
+ * __wt_extlist_cache_ext_discard --
  *     Discard WT_EXT and WT_SIZE structures after checkpoint runs.
  */
 int
-__wti_extlist_cache_ext_discard(WT_SESSION_IMPL *session, u_int max)
+__wt_extlist_cache_ext_discard(WT_SESSION_IMPL *session, u_int max)
 {
     WT_RET(__extlist_cache_ext_discard(session, max));
     WT_RET(__extlist_cache_size_discard(session, max));

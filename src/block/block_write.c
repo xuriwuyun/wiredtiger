@@ -255,7 +255,7 @@ __block_write_off(WT_SESSION_IMPL *session, WT_BLOCK *block, WT_ITEM *buf, wt_of
     }
 
     /* Pre-allocate some number of extension structures. */
-    WT_RET(__wti_extlist_cache_ext_prealloc(session, 5));
+    WT_RET(__wt_extlist_cache_ext_prealloc(session, 5));
 
     /*
      * Acquire a lock, if we don't already hold one. Allocate space for the write, and optionally

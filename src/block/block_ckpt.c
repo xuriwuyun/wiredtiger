@@ -18,10 +18,10 @@ static int __ckpt_update(WT_SESSION_IMPL *, WT_BLOCK *, WT_CKPT *, WT_CKPT *, WT
 static int
 __block_extlist_setup(WT_SESSION_IMPL *session, WT_BLOCK_CKPT *ci, const char *name)
 {
-    WT_RET(__wti_extlist_init(session, &ci->alloc, name, "alloc", false));
-    WT_RET(__wti_extlist_init(session, &ci->avail, name, "avail", true));
-    WT_RET(__wti_extlist_init(session, &ci->discard, name, "discard", false));
-    WT_RET(__wti_extlist_init(session, &ci->ckpt_avail, name, "ckpt_avail", true));
+    WT_RET(__wt_extlist_init(session, &ci->alloc, name, "alloc", false));
+    WT_RET(__wt_extlist_init(session, &ci->avail, name, "avail", true));
+    WT_RET(__wt_extlist_init(session, &ci->discard, name, "discard", false));
+    WT_RET(__wt_extlist_init(session, &ci->ckpt_avail, name, "ckpt_avail", true));
 
     return (0);
 }
@@ -224,12 +224,12 @@ __wti_block_ckpt_destroy(WT_SESSION_IMPL *session, WT_BLOCK_CKPT *ci)
      */
 
     /* Discard the extent lists. */
-    __wti_extlist_free(session, &ci->alloc);
-    __wti_extlist_free(session, &ci->avail);
-    __wti_extlist_free(session, &ci->discard);
-    __wti_extlist_free(session, &ci->ckpt_alloc);
-    __wti_extlist_free(session, &ci->ckpt_avail);
-    __wti_extlist_free(session, &ci->ckpt_discard);
+    __wt_extlist_free(session, &ci->alloc);
+    __wt_extlist_free(session, &ci->avail);
+    __wt_extlist_free(session, &ci->discard);
+    __wt_extlist_free(session, &ci->ckpt_alloc);
+    __wt_extlist_free(session, &ci->ckpt_avail);
+    __wt_extlist_free(session, &ci->ckpt_discard);
 }
 
 /*
@@ -298,13 +298,13 @@ __wt_block_checkpoint(
      * Checkpoints are potentially reading/writing/merging lots of blocks, pre-allocate structures
      * for this thread's use.
      */
-    WT_ERR(__wti_extlist_cache_ext_prealloc(session, 250));
+    WT_ERR(__wt_extlist_cache_ext_prealloc(session, 250));
 
     /* Process the checkpoint list, deleting and updating as required. */
     ret = __ckpt_process(session, block, ckptbase);
 
     /* Discard any excessive memory we've allocated. */
-    WT_TRET(__wti_extlist_cache_ext_discard(session, 250));
+    WT_TRET(__wt_extlist_cache_ext_discard(session, 250));
 
 /* Restore the original allocation plan. */
 err:
@@ -643,10 +643,10 @@ __ckpt_process(WT_SESSION_IMPL *session, WT_BLOCK *block, WT_CKPT *ckptbase)
      * waiting allows the btree layer to continue eviction sooner. As for the checkpoint-available
      * list, make sure they get cleaned out.
      */
-    __wti_extlist_free(session, &ci->ckpt_avail);
-    WT_RET(__wti_extlist_init(session, &ci->ckpt_avail, "live", "ckpt_avail", true));
-    __wti_extlist_free(session, &ci->ckpt_alloc);
-    __wti_extlist_free(session, &ci->ckpt_discard);
+    __wt_extlist_free(session, &ci->ckpt_avail);
+    WT_RET(__wt_extlist_init(session, &ci->ckpt_avail, "live", "ckpt_avail", true));
+    __wt_extlist_free(session, &ci->ckpt_alloc);
+    __wt_extlist_free(session, &ci->ckpt_discard);
 
     /*
      * To delete a checkpoint, we need checkpoint information for it and the subsequent checkpoint
@@ -869,9 +869,9 @@ live_update:
      * resetting the original, then doing the work later.
      */
     ci->ckpt_alloc = ci->alloc;
-    WT_ERR(__wti_extlist_init(session, &ci->alloc, "live", "alloc", false));
+    WT_ERR(__wt_extlist_init(session, &ci->alloc, "live", "alloc", false));
     ci->ckpt_discard = ci->discard;
-    WT_ERR(__wti_extlist_init(session, &ci->discard, "live", "discard", false));
+    WT_ERR(__wt_extlist_init(session, &ci->discard, "live", "discard", false));
 
 #ifdef HAVE_DIAGNOSTIC
     /*
@@ -1069,9 +1069,9 @@ __wt_block_checkpoint_resolve(WT_SESSION_IMPL *session, WT_BLOCK *block, bool fa
     __wt_spin_unlock(session, &block->live_lock);
 
     /* Discard the lists remaining after the checkpoint call. */
-    __wti_extlist_free(session, &ci->ckpt_avail);
-    __wti_extlist_free(session, &ci->ckpt_alloc);
-    __wti_extlist_free(session, &ci->ckpt_discard);
+    __wt_extlist_free(session, &ci->ckpt_avail);
+    __wt_extlist_free(session, &ci->ckpt_alloc);
+    __wt_extlist_free(session, &ci->ckpt_discard);
 
     __wt_spin_lock(session, &block->live_lock);
 done:

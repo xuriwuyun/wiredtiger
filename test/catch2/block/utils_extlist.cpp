@@ -157,7 +157,7 @@ ext_free_list(WT_SESSION_IMPL *session, WT_EXT **head, WT_EXT *last)
             last_found = true;
         WT_EXT *next_extp = extp->next[0];
         extp->next[0] = nullptr;
-        __wti_extlist_cache_ext_free(session, &extp);
+        __wt_extlist_cache_ext_free(session, &extp);
         extp = next_extp;
     }
     return last_found;
@@ -201,7 +201,7 @@ extlist_free(WT_SESSION_IMPL *session, WT_EXTLIST &extlist)
     if (ext_free_list(session, extlist.off, extlist.last))
         extlist.last = nullptr;
     else if (extlist.last != nullptr)
-        __wti_extlist_cache_ext_free(session, &extlist.last);
+        __wt_extlist_cache_ext_free(session, &extlist.last);
     size_free_list(session, extlist.sz);
 }
 

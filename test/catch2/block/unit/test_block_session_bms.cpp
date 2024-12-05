@@ -19,7 +19,7 @@
 #include "../../wrappers/mock_session.h"
 
 TEST_CASE(
-  "Block session: __wti_extlist_cache_ext_prealloc with null block manager", "[block_session_bms]")
+  "Block session: __wt_extlist_cache_ext_prealloc with null block manager", "[block_session_bms]")
 {
     std::shared_ptr<mock_session> session = mock_session::build_test_mock_session();
 
@@ -29,7 +29,7 @@ TEST_CASE(
 
         __wt_random_init(&session->get_wt_session_impl()->rnd);
 
-        REQUIRE(__wti_extlist_cache_ext_prealloc(session->get_wt_session_impl(), 0) == 0);
+        REQUIRE(__wt_extlist_cache_ext_prealloc(session->get_wt_session_impl(), 0) == 0);
         bms = static_cast<WT_EXTLIST_CACHE *>(session->get_wt_session_impl()->extlist_cache);
 
         REQUIRE(bms != nullptr);
@@ -40,14 +40,14 @@ TEST_CASE(
     }
 }
 
-TEST_CASE("Block session: __wti_extlist_cache_ext_prealloc", "[block_session_bms]")
+TEST_CASE("Block session: __wt_extlist_cache_ext_prealloc", "[block_session_bms]")
 {
     std::shared_ptr<mock_session> session = mock_session::build_test_mock_session();
     WT_EXTLIST_CACHE *bms = session->setup_block_manager_session();
 
     SECTION("Prealloc with block manager")
     {
-        REQUIRE(__wti_extlist_cache_ext_prealloc(session->get_wt_session_impl(), 2) == 0);
+        REQUIRE(__wt_extlist_cache_ext_prealloc(session->get_wt_session_impl(), 2) == 0);
         REQUIRE(session->get_wt_session_impl()->extlist_cache == bms);
         validate_ext_list(bms, 2);
         validate_size_list(bms, 2);
@@ -55,12 +55,12 @@ TEST_CASE("Block session: __wti_extlist_cache_ext_prealloc", "[block_session_bms
 
     SECTION("Prealloc with existing cache")
     {
-        REQUIRE(__wti_extlist_cache_ext_prealloc(session->get_wt_session_impl(), 2) == 0);
+        REQUIRE(__wt_extlist_cache_ext_prealloc(session->get_wt_session_impl(), 2) == 0);
         REQUIRE(session->get_wt_session_impl()->extlist_cache == bms);
         validate_ext_list(bms, 2);
         validate_size_list(bms, 2);
 
-        REQUIRE(__wti_extlist_cache_ext_prealloc(session->get_wt_session_impl(), 5) == 0);
+        REQUIRE(__wt_extlist_cache_ext_prealloc(session->get_wt_session_impl(), 5) == 0);
         validate_ext_list(bms, 5);
         validate_size_list(bms, 5);
     }
@@ -88,7 +88,7 @@ TEST_CASE("Block session: __block_manager_session_cleanup", "[block_session_bms]
 
     SECTION("Calling free with session block manager and cache")
     {
-        REQUIRE(__wti_extlist_cache_ext_prealloc(session_impl, 2) == 0);
+        REQUIRE(__wt_extlist_cache_ext_prealloc(session_impl, 2) == 0);
         validate_ext_list(bms, 2);
         validate_size_list(bms, 2);
 
@@ -99,7 +99,7 @@ TEST_CASE("Block session: __block_manager_session_cleanup", "[block_session_bms]
 
     SECTION("Calling free with session block manager and fake extent cache")
     {
-        REQUIRE(__wti_extlist_cache_ext_prealloc(session_impl, 2) == 0);
+        REQUIRE(__wt_extlist_cache_ext_prealloc(session_impl, 2) == 0);
         validate_ext_list(bms, 2);
         validate_size_list(bms, 2);
 
@@ -112,7 +112,7 @@ TEST_CASE("Block session: __block_manager_session_cleanup", "[block_session_bms]
 
     SECTION("Calling free with session block manager and fake size cache")
     {
-        REQUIRE(__wti_extlist_cache_ext_prealloc(session_impl, 2) == 0);
+        REQUIRE(__wt_extlist_cache_ext_prealloc(session_impl, 2) == 0);
         validate_ext_list(bms, 2);
         validate_size_list(bms, 2);
 

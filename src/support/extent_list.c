@@ -325,7 +325,7 @@ __wt_extlist_off_remove(
     /* Return the record if our caller wants it, otherwise free it. */
     if (extp == NULL) {
         WT_EXT *ext_to_free = ext;
-        __wti_extlist_cache_ext_free(session, &ext_to_free);
+        __wt_extlist_cache_ext_free(session, &ext_to_free);
     } else
         *extp = ext;
 
@@ -424,7 +424,7 @@ __wt_extlist_off_remove_overlap(
         }
     }
     if (ext != NULL)
-        __wti_extlist_cache_ext_free(session, &ext);
+        __wt_extlist_cache_ext_free(session, &ext);
     return (0);
 }
 
@@ -634,11 +634,11 @@ __wt_extlist_append(
 }
 
 /*
- * __wti_extlist_init --
+ * __wt_extlist_init --
  *     Initialize an extent list.
  */
 int
-__wti_extlist_init(
+__wt_extlist_init(
   WT_SESSION_IMPL *session, WT_EXTLIST *el, const char *name, const char *extname, bool track_size)
 {
     size_t size;
@@ -657,11 +657,11 @@ __wti_extlist_init(
 }
 
 /*
- * __wti_extlist_free --
+ * __wt_extlist_free --
  *     Discard an extent list.
  */
 void
-__wti_extlist_free(WT_SESSION_IMPL *session, WT_EXTLIST *el)
+__wt_extlist_free(WT_SESSION_IMPL *session, WT_EXTLIST *el)
 {
     WT_EXT *ext, *next;
     WT_SIZE *nszp, *szp;

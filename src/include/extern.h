@@ -604,10 +604,16 @@ extern int __wt_ext_unpack_uint(WT_EXTENSION_API *wt_api, WT_PACK_STREAM *ps, ui
   WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
 extern int __wt_extlist_append(WT_SESSION_IMPL *session, bool verify, WT_EXTLIST *el, wt_off_t off,
   wt_off_t size) WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
+extern int __wt_extlist_cache_ext_discard(WT_SESSION_IMPL *session, u_int max)
+  WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
+extern int __wt_extlist_cache_ext_prealloc(WT_SESSION_IMPL *session, u_int max)
+  WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
 extern int __wt_extlist_dump(WT_SESSION_IMPL *session, bool verify_layout, WT_EXTLIST *el,
   const char *tag) WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
 extern int __wt_extlist_ext_insert(WT_SESSION_IMPL *session, WT_EXTLIST *el, WT_EXT *ext)
   WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
+extern int __wt_extlist_init(WT_SESSION_IMPL *session, WT_EXTLIST *el, const char *name,
+  const char *extname, bool track_size) WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
 extern int __wt_extlist_merge(WT_SESSION_IMPL *session, bool verify, WT_EXTLIST *a, WT_EXTLIST *b)
   WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
 extern int __wt_extlist_merge_int(WT_SESSION_IMPL *session, bool verify, WT_EXTLIST *el,
@@ -1354,14 +1360,8 @@ extern int __wti_execute_handle_operation(WT_SESSION_IMPL *session, const char *
   WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
 extern int __wti_extlist_cache_ext_alloc(WT_SESSION_IMPL *session, WT_EXT **extp)
   WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
-extern int __wti_extlist_cache_ext_discard(WT_SESSION_IMPL *session, u_int max)
-  WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
-extern int __wti_extlist_cache_ext_prealloc(WT_SESSION_IMPL *session, u_int max)
-  WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
 extern int __wti_extlist_cache_size_alloc(WT_SESSION_IMPL *session, WT_SIZE **szp)
   WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
-extern int __wti_extlist_init(WT_SESSION_IMPL *session, WT_EXTLIST *el, const char *name,
-  const char *extname, bool track_size) WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
 extern int __wti_extra_diagnostics_config(WT_SESSION_IMPL *session, const char *cfg[])
   WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
 extern int __wti_heuristic_controls_config(WT_SESSION_IMPL *session, const char *cfg[])
@@ -1612,6 +1612,8 @@ extern void __wt_ext_spin_lock(
   WT_EXTENSION_API *wt_api, WT_SESSION *session, WT_EXTENSION_SPINLOCK *ext_spinlock);
 extern void __wt_ext_spin_unlock(
   WT_EXTENSION_API *wt_api, WT_SESSION *session, WT_EXTENSION_SPINLOCK *ext_spinlock);
+extern void __wt_extlist_cache_ext_free(WT_SESSION_IMPL *session, WT_EXT **ext);
+extern void __wt_extlist_free(WT_SESSION_IMPL *session, WT_EXTLIST *el);
 extern void __wt_extlist_off_srch(WT_EXT **head, wt_off_t off, WT_EXT ***stack, bool skip_off);
 extern void __wt_extlist_off_srch_pair(
   WT_EXTLIST *el, wt_off_t off, WT_EXT **beforep, WT_EXT **afterp);
@@ -1728,9 +1730,7 @@ extern void __wti_connection_destroy(WT_CONNECTION_IMPL *conn);
 extern void __wti_cursor_reopen(WT_CURSOR *cursor, WT_DATA_HANDLE *dhandle);
 extern void __wti_cursor_set_key_notsup(WT_CURSOR *cursor, ...);
 extern void __wti_cursor_set_value_notsup(WT_CURSOR *cursor, ...);
-extern void __wti_extlist_cache_ext_free(WT_SESSION_IMPL *session, WT_EXT **ext);
 extern void __wti_extlist_cache_size_free(WT_SESSION_IMPL *session, WT_SIZE **sz);
-extern void __wti_extlist_free(WT_SESSION_IMPL *session, WT_EXTLIST *el);
 extern void __wti_free_ref(WT_SESSION_IMPL *session, WT_REF *ref, int page_type, bool free_pages);
 extern void __wti_free_ref_index(
   WT_SESSION_IMPL *session, WT_PAGE *page, WT_PAGE_INDEX *pindex, bool free_pages);

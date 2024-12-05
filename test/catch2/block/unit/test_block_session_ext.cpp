@@ -145,7 +145,7 @@ TEST_CASE("Block session: __wti_extlist_cache_ext_alloc", "[block_session_ext]")
     }
 }
 
-TEST_CASE("Block session: __wti_extlist_cache_ext_free", "[block_session_ext]")
+TEST_CASE("Block session: __wt_extlist_cache_ext_free", "[block_session_ext]")
 {
     std::shared_ptr<mock_session> session = mock_session::build_test_mock_session();
     WT_EXTLIST_CACHE *bms = session->setup_block_manager_session();
@@ -158,7 +158,7 @@ TEST_CASE("Block session: __wti_extlist_cache_ext_free", "[block_session_ext]")
         REQUIRE(__ut_block_ext_alloc(session_no_bm->get_wt_session_impl(), &ext) == 0);
         REQUIRE(ext != nullptr);
 
-        __wti_extlist_cache_ext_free(session_no_bm->get_wt_session_impl(), &ext);
+        __wt_extlist_cache_ext_free(session_no_bm->get_wt_session_impl(), &ext);
         REQUIRE(ext == nullptr);
     }
 
@@ -167,7 +167,7 @@ TEST_CASE("Block session: __wti_extlist_cache_ext_free", "[block_session_ext]")
         WT_EXT *ext;
         REQUIRE(__ut_block_ext_alloc(session->get_wt_session_impl(), &ext) == 0);
 
-        __wti_extlist_cache_ext_free(session->get_wt_session_impl(), &ext);
+        __wt_extlist_cache_ext_free(session->get_wt_session_impl(), &ext);
 
         REQUIRE(ext != nullptr);
         REQUIRE(bms->ext_cache == ext);
@@ -175,7 +175,7 @@ TEST_CASE("Block session: __wti_extlist_cache_ext_free", "[block_session_ext]")
 
         WT_EXT *ext2;
         REQUIRE(__ut_block_ext_alloc(session->get_wt_session_impl(), &ext2) == 0);
-        __wti_extlist_cache_ext_free(session->get_wt_session_impl(), &ext2);
+        __wt_extlist_cache_ext_free(session->get_wt_session_impl(), &ext2);
 
         REQUIRE(ext != nullptr);
         REQUIRE(bms->ext_cache == ext2);
