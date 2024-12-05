@@ -77,7 +77,7 @@ extlist_print_off(const WT_EXTLIST &extlist)
 /*!
  * alloc_new_ext --
  *     Allocate and initialize a WT_EXT structure for tests. Require that the allocation succeeds. A
- *     convenience wrapper for __wti_block_ext_alloc().
+ *     convenience wrapper for __wti_extlist_cache_ext_alloc().
  *
  * @param off The offset.
  * @param size The size.
@@ -86,7 +86,7 @@ WT_EXT *
 alloc_new_ext(WT_SESSION_IMPL *session, wt_off_t off, wt_off_t size)
 {
     WT_EXT *ext;
-    REQUIRE(__wti_block_ext_alloc(session, &ext) == 0);
+    REQUIRE(__wti_extlist_cache_ext_alloc(session, &ext) == 0);
     ext->off = off;
     ext->size = size;
 
@@ -101,7 +101,7 @@ alloc_new_ext(WT_SESSION_IMPL *session, wt_off_t off, wt_off_t size)
 /*!
  * alloc_new_ext --
  *     Allocate and initialize a WT_EXT structure for tests. Require that the allocation succeeds. A
- *     convenience wrapper for __wti_block_ext_alloc().
+ *     convenience wrapper for __wti_extlist_cache_ext_alloc().
  *
  * @param off_size The offset and the size.
  */
@@ -157,7 +157,7 @@ ext_free_list(WT_SESSION_IMPL *session, WT_EXT **head, WT_EXT *last)
             last_found = true;
         WT_EXT *next_extp = extp->next[0];
         extp->next[0] = nullptr;
-        __wti_block_ext_free(session, &extp);
+        __wti_extlist_cache_ext_free(session, &extp);
         extp = next_extp;
     }
     return last_found;
@@ -183,7 +183,7 @@ size_free_list(WT_SESSION_IMPL *session, WT_SIZE **head)
     while (sizep != nullptr) {
         WT_SIZE *next_sizep = sizep->next[0];
         sizep->next[0] = nullptr;
-        __wti_block_size_free(session, &sizep);
+        __wti_extlist_cache_size_free(session, &sizep);
         sizep = next_sizep;
     }
 }
@@ -201,7 +201,7 @@ extlist_free(WT_SESSION_IMPL *session, WT_EXTLIST &extlist)
     if (ext_free_list(session, extlist.off, extlist.last))
         extlist.last = nullptr;
     else if (extlist.last != nullptr)
-        __wti_block_ext_free(session, &extlist.last);
+        __wti_extlist_cache_ext_free(session, &extlist.last);
     size_free_list(session, extlist.sz);
 }
 

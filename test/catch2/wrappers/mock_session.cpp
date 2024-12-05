@@ -27,8 +27,8 @@ mock_session::mock_session(
 mock_session::~mock_session()
 {
     WT_CONNECTION_IMPL *connection_impl = _mock_connection->get_wt_connection_impl();
-    if (_session_impl->block_manager != nullptr)
-        _session_impl->block_manager_cleanup(_session_impl);
+    if (_session_impl->extlist_cache != nullptr)
+        _session_impl->extlist_cache_cleanup(_session_impl);
     // FIXME-WT-13505: Move terminate function to connection once circular dependency is fixed.
     if (connection_impl->file_system != nullptr)
         utils::throw_if_non_zero(connection_impl->file_system->terminate(
@@ -59,15 +59,15 @@ mock_session::build_test_mock_session()
     return std::shared_ptr<mock_session>(new mock_session(session_impl, mock_connection));
 }
 
-WT_BLOCK_MGR_SESSION *
+WT_EXTLIST_CACHE *
 mock_session::setup_block_manager_session()
 {
     // Initialize rnd state because block manager requires it.
     __wt_random_init(&_session_impl->rnd);
     utils::throw_if_non_zero(
-      __wt_calloc(nullptr, 1, sizeof(WT_BLOCK_MGR_SESSION), &_session_impl->block_manager));
-    _session_impl->block_manager_cleanup = __ut_block_manager_session_cleanup;
-    return static_cast<WT_BLOCK_MGR_SESSION *>(_session_impl->block_manager);
+      __wt_calloc(nullptr, 1, sizeof(WT_EXTLIST_CACHE), &_session_impl->extlist_cache));
+    _session_impl->extlist_cache_cleanup = __ut_block_manager_session_cleanup;
+    return static_cast<WT_EXTLIST_CACHE *>(_session_impl->extlist_cache);
 }
 
 void

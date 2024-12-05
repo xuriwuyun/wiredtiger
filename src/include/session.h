@@ -211,8 +211,9 @@ struct __wt_session_impl {
 
     WT_PREFETCH pf; /* Pre-fetch structure */
 
-    void *block_manager; /* Block-manager support */
-    int (*block_manager_cleanup)(WT_SESSION_IMPL *);
+    /* Extent lists are comprised of extents and sizes. Cache them on the session for reuse. */
+    void *extlist_cache;
+    int (*extlist_cache_cleanup)(WT_SESSION_IMPL *);
 
     const char *hs_checkpoint;     /* History store checkpoint name, during checkpoint cursor ops */
     uint64_t checkpoint_write_gen; /* Write generation override, during checkpoint cursor ops */

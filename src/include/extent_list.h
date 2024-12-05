@@ -9,6 +9,17 @@
 #pragma once
 
 /*
+ * Per session handle cached block manager information.
+ */
+typedef struct {
+    WT_EXT *ext_cache;   /* List of WT_EXT handles */
+    u_int ext_cache_cnt; /* Count */
+
+    WT_SIZE *sz_cache;  /* List of WT_SIZE handles */
+    u_int sz_cache_cnt; /* Count */
+} WT_EXTLIST_CACHE;
+
+/*
  * WT_EXT_VERIFY_RET --
  *	Handle extension list errors that would normally panic the system but
  * which should fail gracefully when verifying.

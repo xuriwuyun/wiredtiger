@@ -20,17 +20,6 @@
 #define WT_BLOCK_INVALID_OFFSET 0
 
 /*
- * Per session handle cached block manager information.
- */
-typedef struct {
-    WT_EXT *ext_cache;   /* List of WT_EXT handles */
-    u_int ext_cache_cnt; /* Count */
-
-    WT_SIZE *sz_cache;  /* List of WT_SIZE handles */
-    u_int sz_cache_cnt; /* Count */
-} WT_BLOCK_MGR_SESSION;
-
-/*
  * Checkpoint cookie: carries a version number as I don't want to rev the schema
  * file version should the default block manager checkpoint format change.
  *

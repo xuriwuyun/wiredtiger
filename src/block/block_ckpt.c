@@ -298,13 +298,13 @@ __wt_block_checkpoint(
      * Checkpoints are potentially reading/writing/merging lots of blocks, pre-allocate structures
      * for this thread's use.
      */
-    WT_ERR(__wti_block_ext_prealloc(session, 250));
+    WT_ERR(__wti_extlist_cache_ext_prealloc(session, 250));
 
     /* Process the checkpoint list, deleting and updating as required. */
     ret = __ckpt_process(session, block, ckptbase);
 
     /* Discard any excessive memory we've allocated. */
-    WT_TRET(__wti_block_ext_discard(session, 250));
+    WT_TRET(__wti_extlist_cache_ext_discard(session, 250));
 
 /* Restore the original allocation plan. */
 err:

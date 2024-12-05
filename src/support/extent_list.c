@@ -167,7 +167,7 @@ __wt_extlist_ext_insert(WT_SESSION_IMPL *session, WT_EXTLIST *el, WT_EXT *ext)
         __wt_extlist_size_srch(el->sz, ext->size, sstack);
         szp = *sstack[0];
         if (szp == NULL || szp->size != ext->size) {
-            WT_RET(__wti_block_size_alloc(session, &szp));
+            WT_RET(__wti_extlist_cache_size_alloc(session, &szp));
             szp->size = ext->size;
             szp->depth = ext->depth;
             for (i = 0; i < ext->depth; ++i) {
@@ -217,7 +217,7 @@ __wt_extlist_off_insert(WT_SESSION_IMPL *session, WT_EXTLIST *el, wt_off_t off, 
 {
     WT_EXT *ext;
 
-    WT_RET(__wti_block_ext_alloc(session, &ext));
+    WT_RET(__wti_extlist_cache_ext_alloc(session, &ext));
     ext->off = off;
     ext->size = size;
 
@@ -306,7 +306,7 @@ __wt_extlist_off_remove(
         if (szp->off[0] == NULL) {
             for (i = 0; i < szp->depth; ++i)
                 *sstack[i] = szp->next[i];
-            __wti_block_size_free(session, &szp);
+            __wti_extlist_cache_size_free(session, &szp);
         }
     }
 #ifdef HAVE_DIAGNOSTIC
@@ -325,7 +325,7 @@ __wt_extlist_off_remove(
     /* Return the record if our caller wants it, otherwise free it. */
     if (extp == NULL) {
         WT_EXT *ext_to_free = ext;
-        __wti_block_ext_free(session, &ext_to_free);
+        __wti_extlist_cache_ext_free(session, &ext_to_free);
     } else
         *extp = ext;
 
@@ -424,7 +424,7 @@ __wt_extlist_off_remove_overlap(
         }
     }
     if (ext != NULL)
-        __wti_block_ext_free(session, &ext);
+        __wti_extlist_cache_ext_free(session, &ext);
     return (0);
 }
 
@@ -615,7 +615,7 @@ __wt_extlist_append(
             if (last_ext != NULL)
                 /* Assert that this is appending an extent after the last extent. */
                 WT_ASSERT(session, last_ext->off + last_ext->size < off);
-            WT_RET(__wti_block_ext_alloc(session, &last_ext));
+            WT_RET(__wti_extlist_cache_ext_alloc(session, &last_ext));
             last_ext->off = off;
             last_ext->size = size;
 

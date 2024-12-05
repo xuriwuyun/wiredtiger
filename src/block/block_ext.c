@@ -188,7 +188,7 @@ append:
         __wt_verbose(session, WT_VERB_BLOCK, "%s: allocate range %" PRIdMAX "-%" PRIdMAX,
           block->live.avail.name, (intmax_t)ext->off, (intmax_t)(ext->off + ext->size));
 
-        __wti_block_ext_free(session, &ext);
+        __wti_extlist_cache_ext_free(session, &ext);
     }
 
     /* Add the newly allocated extent to the list of allocations. */
@@ -233,7 +233,7 @@ __wt_block_free(WT_SESSION_IMPL *session, WT_BLOCK *block, const uint8_t *addr, 
       session, block, "free", offset, size, true, __PRETTY_FUNCTION__, __LINE__));
 #endif
 
-    WT_RET(__wti_block_ext_prealloc(session, 5));
+    WT_RET(__wti_extlist_cache_ext_prealloc(session, 5));
     __wt_spin_lock(session, &block->live_lock);
     WT_TRET(__wti_block_off_free(session, block, objectid, offset, (wt_off_t)size));
 

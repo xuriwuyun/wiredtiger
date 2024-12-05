@@ -9,11 +9,11 @@
 #include "wt_internal.h"
 
 /*
- * __block_ext_alloc --
+ * __extlist_cache_ext_alloc --
  *     Allocate a new WT_EXT structure.
  */
 static int
-__block_ext_alloc(WT_SESSION_IMPL *session, WT_EXT **extp)
+__extlist_cache_ext_alloc(WT_SESSION_IMPL *session, WT_EXT **extp)
 {
     WT_EXT *ext;
 
@@ -28,17 +28,17 @@ __block_ext_alloc(WT_SESSION_IMPL *session, WT_EXT **extp)
 }
 
 /*
- * __wti_block_ext_alloc --
+ * __wti_extlist_cache_ext_alloc --
  *     Return a WT_EXT structure for use.
  */
 int
-__wti_block_ext_alloc(WT_SESSION_IMPL *session, WT_EXT **extp)
+__wti_extlist_cache_ext_alloc(WT_SESSION_IMPL *session, WT_EXT **extp)
 {
-    WT_BLOCK_MGR_SESSION *bms;
     WT_EXT *ext;
+    WT_EXTLIST_CACHE *bms;
     u_int i;
 
-    bms = session->block_manager;
+    bms = session->extlist_cache;
 
     /* Return a WT_EXT structure for use from a cached list. */
     if (bms != NULL && bms->ext_cache != NULL) {
@@ -59,23 +59,23 @@ __wti_block_ext_alloc(WT_SESSION_IMPL *session, WT_EXT **extp)
         return (0);
     }
 
-    return (__block_ext_alloc(session, extp));
+    return (__extlist_cache_ext_alloc(session, extp));
 }
 
 /*
- * __block_ext_prealloc --
+ * __extlist_cache_ext_prealloc --
  *     Pre-allocate WT_EXT structures.
  */
 static int
-__block_ext_prealloc(WT_SESSION_IMPL *session, u_int max)
+__extlist_cache_ext_prealloc(WT_SESSION_IMPL *session, u_int max)
 {
-    WT_BLOCK_MGR_SESSION *bms;
     WT_EXT *ext;
+    WT_EXTLIST_CACHE *bms;
 
-    bms = session->block_manager;
+    bms = session->extlist_cache;
 
     for (; bms->ext_cache_cnt < max; ++bms->ext_cache_cnt) {
-        WT_RET(__block_ext_alloc(session, &ext));
+        WT_RET(__extlist_cache_ext_alloc(session, &ext));
 
         ext->next[0] = bms->ext_cache;
         bms->ext_cache = ext;
@@ -84,15 +84,15 @@ __block_ext_prealloc(WT_SESSION_IMPL *session, u_int max)
 }
 
 /*
- * __wti_block_ext_free --
+ * __wti_extlist_cache_ext_free --
  *     Add a WT_EXT structure to the cached list.
  */
 void
-__wti_block_ext_free(WT_SESSION_IMPL *session, WT_EXT **ext)
+__wti_extlist_cache_ext_free(WT_SESSION_IMPL *session, WT_EXT **ext)
 {
-    WT_BLOCK_MGR_SESSION *bms;
+    WT_EXTLIST_CACHE *bms;
 
-    if ((bms = session->block_manager) == NULL)
+    if ((bms = session->extlist_cache) == NULL)
         __wt_free(session, *ext);
     else {
         (*ext)->next[0] = bms->ext_cache;
@@ -103,16 +103,16 @@ __wti_block_ext_free(WT_SESSION_IMPL *session, WT_EXT **ext)
 }
 
 /*
- * __block_ext_discard --
+ * __extlist_cache_ext_discard --
  *     Discard some or all of the WT_EXT structure cache.
  */
 static int
-__block_ext_discard(WT_SESSION_IMPL *session, u_int max)
+__extlist_cache_ext_discard(WT_SESSION_IMPL *session, u_int max)
 {
-    WT_BLOCK_MGR_SESSION *bms;
     WT_EXT *ext, *next;
+    WT_EXTLIST_CACHE *bms;
 
-    bms = session->block_manager;
+    bms = session->extlist_cache;
     if (max != 0 && bms->ext_cache_cnt <= max)
         return (0);
 
@@ -133,25 +133,25 @@ __block_ext_discard(WT_SESSION_IMPL *session, u_int max)
 }
 
 /*
- * __block_size_alloc --
+ * __extlist_cache_size_alloc --
  *     Allocate a new WT_SIZE structure.
  */
 static int
-__block_size_alloc(WT_SESSION_IMPL *session, WT_SIZE **szp)
+__extlist_cache_size_alloc(WT_SESSION_IMPL *session, WT_SIZE **szp)
 {
     return (__wt_calloc_one(session, szp));
 }
 
 /*
- * __wti_block_size_alloc --
+ * __wti_extlist_cache_size_alloc --
  *     Return a WT_SIZE structure for use.
  */
 int
-__wti_block_size_alloc(WT_SESSION_IMPL *session, WT_SIZE **szp)
+__wti_extlist_cache_size_alloc(WT_SESSION_IMPL *session, WT_SIZE **szp)
 {
-    WT_BLOCK_MGR_SESSION *bms;
+    WT_EXTLIST_CACHE *bms;
 
-    bms = session->block_manager;
+    bms = session->extlist_cache;
 
     /* Return a WT_SIZE structure for use from a cached list. */
     if (bms != NULL && bms->sz_cache != NULL) {
@@ -166,23 +166,23 @@ __wti_block_size_alloc(WT_SESSION_IMPL *session, WT_SIZE **szp)
         return (0);
     }
 
-    return (__block_size_alloc(session, szp));
+    return (__extlist_cache_size_alloc(session, szp));
 }
 
 /*
- * __block_size_prealloc --
+ * __extlist_cache_size_prealloc --
  *     Pre-allocate WT_SIZE structures.
  */
 static int
-__block_size_prealloc(WT_SESSION_IMPL *session, u_int max)
+__extlist_cache_size_prealloc(WT_SESSION_IMPL *session, u_int max)
 {
-    WT_BLOCK_MGR_SESSION *bms;
+    WT_EXTLIST_CACHE *bms;
     WT_SIZE *sz;
 
-    bms = session->block_manager;
+    bms = session->extlist_cache;
 
     for (; bms->sz_cache_cnt < max; ++bms->sz_cache_cnt) {
-        WT_RET(__block_size_alloc(session, &sz));
+        WT_RET(__extlist_cache_size_alloc(session, &sz));
 
         sz->next[0] = bms->sz_cache;
         bms->sz_cache = sz;
@@ -191,15 +191,15 @@ __block_size_prealloc(WT_SESSION_IMPL *session, u_int max)
 }
 
 /*
- * __wti_block_size_free --
+ * __wti_extlist_cache_size_free --
  *     Add a WT_SIZE structure to the cached list.
  */
 void
-__wti_block_size_free(WT_SESSION_IMPL *session, WT_SIZE **sz)
+__wti_extlist_cache_size_free(WT_SESSION_IMPL *session, WT_SIZE **sz)
 {
-    WT_BLOCK_MGR_SESSION *bms;
+    WT_EXTLIST_CACHE *bms;
 
-    if ((bms = session->block_manager) == NULL)
+    if ((bms = session->extlist_cache) == NULL)
         __wt_free(session, *sz);
     else {
         (*sz)->next[0] = bms->sz_cache;
@@ -210,16 +210,16 @@ __wti_block_size_free(WT_SESSION_IMPL *session, WT_SIZE **sz)
 }
 
 /*
- * __block_size_discard --
+ * __extlist_cache_size_discard --
  *     Discard some or all of the WT_SIZE structure cache.
  */
 static int
-__block_size_discard(WT_SESSION_IMPL *session, u_int max)
+__extlist_cache_size_discard(WT_SESSION_IMPL *session, u_int max)
 {
-    WT_BLOCK_MGR_SESSION *bms;
+    WT_EXTLIST_CACHE *bms;
     WT_SIZE *nsz, *sz;
 
-    bms = session->block_manager;
+    bms = session->extlist_cache;
     if (max != 0 && bms->sz_cache_cnt <= max)
         return (0);
 
@@ -240,50 +240,50 @@ __block_size_discard(WT_SESSION_IMPL *session, u_int max)
 }
 
 /*
- * __block_manager_session_cleanup --
+ * __extlist_cache_manager_session_cleanup --
  *     Clean up the session handle's block manager information.
  */
 static int
-__block_manager_session_cleanup(WT_SESSION_IMPL *session)
+__extlist_cache_manager_session_cleanup(WT_SESSION_IMPL *session)
 {
     WT_DECL_RET;
 
-    if (session->block_manager == NULL)
+    if (session->extlist_cache == NULL)
         return (0);
 
-    WT_TRET(__block_ext_discard(session, 0));
-    WT_TRET(__block_size_discard(session, 0));
+    WT_TRET(__extlist_cache_ext_discard(session, 0));
+    WT_TRET(__extlist_cache_size_discard(session, 0));
 
-    __wt_free(session, session->block_manager);
+    __wt_free(session, session->extlist_cache);
 
     return (ret);
 }
 
 /*
- * __wti_block_ext_prealloc --
+ * __wti_extlist_cache_ext_prealloc --
  *     Pre-allocate WT_EXT and WT_SIZE structures.
  */
 int
-__wti_block_ext_prealloc(WT_SESSION_IMPL *session, u_int max)
+__wti_extlist_cache_ext_prealloc(WT_SESSION_IMPL *session, u_int max)
 {
-    if (session->block_manager == NULL) {
-        WT_RET(__wt_calloc(session, 1, sizeof(WT_BLOCK_MGR_SESSION), &session->block_manager));
-        session->block_manager_cleanup = __block_manager_session_cleanup;
+    if (session->extlist_cache == NULL) {
+        WT_RET(__wt_calloc(session, 1, sizeof(WT_EXTLIST_CACHE), &session->extlist_cache));
+        session->extlist_cache_cleanup = __extlist_cache_manager_session_cleanup;
     }
-    WT_RET(__block_ext_prealloc(session, max));
-    WT_RET(__block_size_prealloc(session, max));
+    WT_RET(__extlist_cache_ext_prealloc(session, max));
+    WT_RET(__extlist_cache_size_prealloc(session, max));
     return (0);
 }
 
 /*
- * __wti_block_ext_discard --
+ * __wti_extlist_cache_ext_discard --
  *     Discard WT_EXT and WT_SIZE structures after checkpoint runs.
  */
 int
-__wti_block_ext_discard(WT_SESSION_IMPL *session, u_int max)
+__wti_extlist_cache_ext_discard(WT_SESSION_IMPL *session, u_int max)
 {
-    WT_RET(__block_ext_discard(session, max));
-    WT_RET(__block_size_discard(session, max));
+    WT_RET(__extlist_cache_ext_discard(session, max));
+    WT_RET(__extlist_cache_size_discard(session, max));
     return (0);
 }
 
@@ -291,42 +291,42 @@ __wti_block_ext_discard(WT_SESSION_IMPL *session, u_int max)
 int
 __ut_block_ext_alloc(WT_SESSION_IMPL *session, WT_EXT **extp)
 {
-    return (__block_ext_alloc(session, extp));
+    return (__extlist_cache_ext_alloc(session, extp));
 }
 
 int
 __ut_block_ext_prealloc(WT_SESSION_IMPL *session, u_int max)
 {
-    return (__block_ext_prealloc(session, max));
+    return (__extlist_cache_ext_prealloc(session, max));
 }
 
 int
 __ut_block_size_alloc(WT_SESSION_IMPL *session, WT_SIZE **szp)
 {
-    return (__block_size_alloc(session, szp));
+    return (__extlist_cache_size_alloc(session, szp));
 }
 
 int
 __ut_block_size_prealloc(WT_SESSION_IMPL *session, u_int max)
 {
-    return (__block_size_prealloc(session, max));
+    return (__extlist_cache_size_prealloc(session, max));
 }
 
 int
 __ut_block_manager_session_cleanup(WT_SESSION_IMPL *session)
 {
-    return (__block_manager_session_cleanup(session));
+    return (__extlist_cache_manager_session_cleanup(session));
 }
 
 int
 __ut_block_ext_discard(WT_SESSION_IMPL *session, u_int max)
 {
-    return (__block_ext_discard(session, max));
+    return (__extlist_cache_ext_discard(session, max));
 }
 
 int
 __ut_block_size_discard(WT_SESSION_IMPL *session, u_int max)
 {
-    return (__block_size_discard(session, max));
+    return (__extlist_cache_size_discard(session, max));
 }
 #endif

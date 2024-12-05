@@ -198,8 +198,8 @@ __reconcile_post_wrapup(
          * discarding reconciliation structures want to clean up the block manager's structures as
          * well, and there's no obvious place to do that.
          */
-        if (session->block_manager_cleanup != NULL) {
-            WT_RET(session->block_manager_cleanup(session));
+        if (session->extlist_cache_cleanup != NULL) {
+            WT_RET(session->extlist_cache_cleanup(session));
         }
 
         WT_RET(__rec_destroy_session(session));

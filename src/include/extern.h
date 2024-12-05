@@ -1195,12 +1195,6 @@ extern int __wti_block_ckpt_unpack(WT_SESSION_IMPL *session, WT_BLOCK *block, co
   size_t ckpt_size, WT_BLOCK_CKPT *ci) WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
 extern int __wti_block_discard(WT_SESSION_IMPL *session, WT_BLOCK *block, size_t added_size)
   WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
-extern int __wti_block_ext_alloc(WT_SESSION_IMPL *session, WT_EXT **extp)
-  WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
-extern int __wti_block_ext_discard(WT_SESSION_IMPL *session, u_int max)
-  WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
-extern int __wti_block_ext_prealloc(WT_SESSION_IMPL *session, u_int max)
-  WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
 extern int __wti_block_extlist_insert_ext(WT_SESSION_IMPL *session, WT_BLOCK *block, WT_EXTLIST *el,
   wt_off_t off, wt_off_t size) WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
 extern int __wti_block_extlist_overlap(WT_SESSION_IMPL *session, WT_BLOCK *block, WT_BLOCK_CKPT *ci)
@@ -1222,8 +1216,6 @@ extern int __wti_block_off_remove_overlap(WT_SESSION_IMPL *session, bool verify,
   wt_off_t off, wt_off_t size) WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
 extern int __wti_block_read_off(WT_SESSION_IMPL *session, WT_BLOCK *block, WT_ITEM *buf,
   uint32_t objectid, wt_off_t offset, uint32_t size, uint32_t checksum)
-  WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
-extern int __wti_block_size_alloc(WT_SESSION_IMPL *session, WT_SIZE **szp)
   WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
 extern int __wti_block_truncate(WT_SESSION_IMPL *session, WT_BLOCK *block, wt_off_t len)
   WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
@@ -1357,6 +1349,14 @@ extern int __wti_desc_write(WT_SESSION_IMPL *session, WT_FH *fh, uint32_t allocs
   WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
 extern int __wti_execute_handle_operation(WT_SESSION_IMPL *session, const char *uri,
   int (*file_func)(WT_SESSION_IMPL *, const char *[]), const char *cfg[], uint32_t open_flags)
+  WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
+extern int __wti_extlist_cache_ext_alloc(WT_SESSION_IMPL *session, WT_EXT **extp)
+  WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
+extern int __wti_extlist_cache_ext_discard(WT_SESSION_IMPL *session, u_int max)
+  WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
+extern int __wti_extlist_cache_ext_prealloc(WT_SESSION_IMPL *session, u_int max)
+  WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
+extern int __wti_extlist_cache_size_alloc(WT_SESSION_IMPL *session, WT_SIZE **szp)
   WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
 extern int __wti_extlist_init(WT_SESSION_IMPL *session, WT_EXTLIST *el, const char *name,
   const char *extname, bool track_size) WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
@@ -1719,8 +1719,6 @@ extern void __wti_blkcache_get_read_handle(WT_BLOCK *block);
 extern void __wti_blkcache_remove(WT_SESSION_IMPL *session, const uint8_t *addr, size_t addr_size);
 extern void __wti_block_ckpt_destroy(WT_SESSION_IMPL *session, WT_BLOCK_CKPT *ci);
 extern void __wti_block_configure_first_fit(WT_BLOCK *block, bool on);
-extern void __wti_block_ext_free(WT_SESSION_IMPL *session, WT_EXT **ext);
-extern void __wti_block_size_free(WT_SESSION_IMPL *session, WT_SIZE **sz);
 extern void __wti_bm_method_set(WT_BM *bm, bool readonly);
 extern void __wti_btcur_iterate_setup(WT_CURSOR_BTREE *cbt);
 extern void __wti_cache_stats_update(WT_SESSION_IMPL *session);
@@ -1730,6 +1728,8 @@ extern void __wti_connection_destroy(WT_CONNECTION_IMPL *conn);
 extern void __wti_cursor_reopen(WT_CURSOR *cursor, WT_DATA_HANDLE *dhandle);
 extern void __wti_cursor_set_key_notsup(WT_CURSOR *cursor, ...);
 extern void __wti_cursor_set_value_notsup(WT_CURSOR *cursor, ...);
+extern void __wti_extlist_cache_ext_free(WT_SESSION_IMPL *session, WT_EXT **ext);
+extern void __wti_extlist_cache_size_free(WT_SESSION_IMPL *session, WT_SIZE **sz);
 extern void __wti_extlist_free(WT_SESSION_IMPL *session, WT_EXTLIST *el);
 extern void __wti_free_ref(WT_SESSION_IMPL *session, WT_REF *ref, int page_type, bool free_pages);
 extern void __wti_free_ref_index(

@@ -32,7 +32,7 @@ free_ext_block(WT_EXT *ext)
 }
 
 void
-validate_ext_list(WT_BLOCK_MGR_SESSION *bms, int expected_items)
+validate_ext_list(WT_EXTLIST_CACHE *bms, int expected_items)
 {
     REQUIRE(bms != nullptr);
     REQUIRE(bms->ext_cache_cnt == expected_items);
@@ -61,7 +61,7 @@ validate_and_free_size_block(WT_SIZE *size)
 }
 
 void
-validate_size_list(WT_BLOCK_MGR_SESSION *bms, int expected_items)
+validate_size_list(WT_EXTLIST_CACHE *bms, int expected_items)
 {
     REQUIRE(bms != nullptr);
     if (bms->sz_cache_cnt == 0)
