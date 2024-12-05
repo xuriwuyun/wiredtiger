@@ -556,7 +556,7 @@ __wti_block_extlist_read(
       __wti_block_read_off(session, block, tmp, el->objectid, el->offset, el->size, el->checksum));
 
     p = WT_BLOCK_HEADER_BYTE(tmp->mem);
-    WT_ERR(__wt_extlist_read_pair(&p, &off, &size));
+    WT_ERR(__wt_block_extlist_read_pair(&p, &off, &size));
     if (off != WT_BLOCK_EXTLIST_MAGIC || size != 0)
         goto corrupted;
 
@@ -570,7 +570,7 @@ __wti_block_extlist_read(
      */
     func = el->track_size == 0 ? __wt_extlist_append : __wt_extlist_merge;
     for (;;) {
-        WT_ERR(__wt_extlist_read_pair(&p, &off, &size));
+        WT_ERR(__wt_block_extlist_read_pair(&p, &off, &size));
         if (off == WT_BLOCK_INVALID_OFFSET)
             break;
 
@@ -647,14 +647,14 @@ __wti_block_extlist_write(
     /* Fill the page's data. */
     p = WT_BLOCK_HEADER_BYTE(dsk);
     /* Extent list starts */
-    WT_ERR(__wt_extlist_write_pair(&p, WT_BLOCK_EXTLIST_MAGIC, 0));
+    WT_ERR(__wt_block_extlist_write_pair(&p, WT_BLOCK_EXTLIST_MAGIC, 0));
     WT_EXT_FOREACH (ext, el->off) /* Free ranges */
-        WT_ERR(__wt_extlist_write_pair(&p, ext->off, ext->size));
+        WT_ERR(__wt_block_extlist_write_pair(&p, ext->off, ext->size));
     if (additional != NULL)
         WT_EXT_FOREACH (ext, additional->off) /* Free ranges */
-            WT_ERR(__wt_extlist_write_pair(&p, ext->off, ext->size));
+            WT_ERR(__wt_block_extlist_write_pair(&p, ext->off, ext->size));
     /* Extent list stops */
-    WT_ERR(__wt_extlist_write_pair(
+    WT_ERR(__wt_block_extlist_write_pair(
       &p, WT_BLOCK_INVALID_OFFSET, block->final_ckpt == NULL ? 0 : WT_BLOCK_EXTLIST_VERSION_CKPT));
 
     dsk->u.datalen = WT_PTRDIFF32(p, WT_BLOCK_HEADER_BYTE(dsk));

@@ -13,11 +13,11 @@
  */
 
 /*
- * __wt_extlist_write_pair --
+ * __wt_block_extlist_write_pair --
  *     Write an extent list pair.
  */
 static WT_INLINE int
-__wt_extlist_write_pair(uint8_t **p, wt_off_t off, wt_off_t size)
+__wt_block_extlist_write_pair(uint8_t **p, wt_off_t off, wt_off_t size)
 {
     WT_RET(__wt_vpack_uint(p, 0, (uint64_t)(off)));
     WT_RET(__wt_vpack_uint(p, 0, (uint64_t)(size)));
@@ -25,11 +25,11 @@ __wt_extlist_write_pair(uint8_t **p, wt_off_t off, wt_off_t size)
 }
 
 /*
- * __wt_extlist_read_pair --
+ * __wt_block_extlist_read_pair --
  *     Read an extent list pair.
  */
 static WT_INLINE int
-__wt_extlist_read_pair(const uint8_t **p, wt_off_t *offp, wt_off_t *sizep)
+__wt_block_extlist_read_pair(const uint8_t **p, wt_off_t *offp, wt_off_t *sizep)
 {
     uint64_t v;
 

@@ -294,11 +294,11 @@ __wt_block_checkpoint_last(WT_SESSION_IMPL *session, WT_BLOCK *block, char **met
             continue;
 
         p = WT_BLOCK_HEADER_BYTE(tmp->mem);
-        WT_BLOCK_SKIP(__wt_extlist_read_pair(&p, &ext_off, &ext_size));
+        WT_BLOCK_SKIP(__wt_block_extlist_read_pair(&p, &ext_off, &ext_size));
         if (ext_off != WT_BLOCK_EXTLIST_MAGIC || ext_size != 0)
             continue;
         for (;;) {
-            if ((ret = __wt_extlist_read_pair(&p, &ext_off, &ext_size)) != 0)
+            if ((ret = __wt_block_extlist_read_pair(&p, &ext_off, &ext_size)) != 0)
                 break;
             if (ext_off == WT_BLOCK_INVALID_OFFSET)
                 break;
