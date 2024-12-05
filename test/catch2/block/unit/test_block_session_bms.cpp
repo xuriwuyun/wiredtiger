@@ -78,15 +78,15 @@ TEST_CASE("Block session: __block_manager_session_cleanup", "[block_session_extl
     {
         std::shared_ptr<mock_session> session_no_extlist_cache =
           mock_session::build_test_mock_session();
-        REQUIRE(
-          __ut_block_manager_session_cleanup(session_no_extlist_cache->get_wt_session_impl()) == 0);
+        REQUIRE(__ut_extlist_cache_manager_session_cleanup(
+                  session_no_extlist_cache->get_wt_session_impl()) == 0);
         REQUIRE(session_no_extlist_cache->get_wt_session_impl()->extlist_cache == nullptr);
     }
 
     SECTION("Calling free with session block manager")
     {
         REQUIRE(session_impl->extlist_cache != nullptr);
-        REQUIRE(__ut_block_manager_session_cleanup(session_impl) == 0);
+        REQUIRE(__ut_extlist_cache_manager_session_cleanup(session_impl) == 0);
         REQUIRE(session_impl->extlist_cache == nullptr);
     }
 
@@ -97,7 +97,7 @@ TEST_CASE("Block session: __block_manager_session_cleanup", "[block_session_extl
         validate_size_list(extlist_cache, 2);
 
         REQUIRE(session_impl->extlist_cache != nullptr);
-        REQUIRE(__ut_block_manager_session_cleanup(session_impl) == 0);
+        REQUIRE(__ut_extlist_cache_manager_session_cleanup(session_impl) == 0);
         REQUIRE(session_impl->extlist_cache == nullptr);
     }
 
@@ -110,7 +110,7 @@ TEST_CASE("Block session: __block_manager_session_cleanup", "[block_session_extl
         extlist_cache->ext_cache_cnt = 3;
 
         REQUIRE(session_impl->extlist_cache != nullptr);
-        REQUIRE(__ut_block_manager_session_cleanup(session_impl) == WT_ERROR);
+        REQUIRE(__ut_extlist_cache_manager_session_cleanup(session_impl) == WT_ERROR);
         REQUIRE(session_impl->extlist_cache == nullptr);
     }
 
@@ -123,7 +123,7 @@ TEST_CASE("Block session: __block_manager_session_cleanup", "[block_session_extl
         extlist_cache->sz_cache_cnt = 3;
 
         REQUIRE(session_impl->extlist_cache != nullptr);
-        REQUIRE(__ut_block_manager_session_cleanup(session_impl) == WT_ERROR);
+        REQUIRE(__ut_extlist_cache_manager_session_cleanup(session_impl) == WT_ERROR);
         REQUIRE(session_impl->extlist_cache == nullptr);
     }
 }

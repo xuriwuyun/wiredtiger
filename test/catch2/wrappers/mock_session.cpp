@@ -66,7 +66,7 @@ mock_session::setup_block_manager_session()
     __wt_random_init(&_session_impl->rnd);
     utils::throw_if_non_zero(
       __wt_calloc(nullptr, 1, sizeof(WT_EXTLIST_CACHE), &_session_impl->extlist_cache));
-    _session_impl->extlist_cache_cleanup = __ut_block_manager_session_cleanup;
+    _session_impl->extlist_cache_cleanup = __ut_extlist_cache_manager_session_cleanup;
     return static_cast<WT_EXTLIST_CACHE *>(_session_impl->extlist_cache);
 }
 

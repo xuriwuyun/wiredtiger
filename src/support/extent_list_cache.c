@@ -289,43 +289,43 @@ __wt_extlist_cache_ext_discard(WT_SESSION_IMPL *session, u_int max)
 
 #ifdef HAVE_UNITTEST
 int
-__ut_block_ext_alloc(WT_SESSION_IMPL *session, WT_EXT **extp)
+__ut_exlist_cache_ext_alloc(WT_SESSION_IMPL *session, WT_EXT **extp)
 {
     return (__extlist_cache_ext_alloc(session, extp));
 }
 
 int
-__ut_block_ext_prealloc(WT_SESSION_IMPL *session, u_int max)
+__ut_exlist_cache_ext_prealloc(WT_SESSION_IMPL *session, u_int max)
 {
     return (__extlist_cache_ext_prealloc(session, max));
 }
 
 int
-__ut_block_size_alloc(WT_SESSION_IMPL *session, WT_SIZE **szp)
+__ut_extlist_cache_size_alloc(WT_SESSION_IMPL *session, WT_SIZE **szp)
 {
     return (__extlist_cache_size_alloc(session, szp));
 }
 
 int
-__ut_block_size_prealloc(WT_SESSION_IMPL *session, u_int max)
+__ut_extlist_cache_size_prealloc(WT_SESSION_IMPL *session, u_int max)
 {
     return (__extlist_cache_size_prealloc(session, max));
 }
 
 int
-__ut_block_manager_session_cleanup(WT_SESSION_IMPL *session)
+__ut_extlist_cache_manager_session_cleanup(WT_SESSION_IMPL *session)
 {
     return (__extlist_cache_manager_session_cleanup(session));
 }
 
 int
-__ut_block_ext_discard(WT_SESSION_IMPL *session, u_int max)
+__ut_extlist_cache_ext_discard(WT_SESSION_IMPL *session, u_int max)
 {
     return (__extlist_cache_ext_discard(session, max));
 }
 
 int
-__ut_block_size_discard(WT_SESSION_IMPL *session, u_int max)
+__ut_extlist_cache_size_discard(WT_SESSION_IMPL *session, u_int max)
 {
     return (__extlist_cache_size_discard(session, max));
 }

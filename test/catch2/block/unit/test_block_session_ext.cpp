@@ -25,7 +25,7 @@ TEST_CASE("Block session: __block_ext_alloc", "[block_session_ext]")
     __wt_random_init(&session->get_wt_session_impl()->rnd);
 
     WT_EXT *ext = nullptr;
-    REQUIRE(__ut_block_ext_alloc(session->get_wt_session_impl(), &ext) == 0);
+    REQUIRE(__ut_exlist_cache_ext_alloc(session->get_wt_session_impl(), &ext) == 0);
     validate_and_free_ext_block(ext);
 }
 
@@ -36,34 +36,34 @@ TEST_CASE("Block session: __block_ext_prealloc", "[block_session_ext]")
 
     SECTION("Allocate zero extent blocks")
     {
-        REQUIRE(__ut_block_ext_prealloc(session->get_wt_session_impl(), 0) == 0);
+        REQUIRE(__ut_exlist_cache_ext_prealloc(session->get_wt_session_impl(), 0) == 0);
         validate_ext_list(extlist_cache, 0);
     }
 
     SECTION("Allocate one extent block")
     {
-        REQUIRE(__ut_block_ext_prealloc(session->get_wt_session_impl(), 1) == 0);
+        REQUIRE(__ut_exlist_cache_ext_prealloc(session->get_wt_session_impl(), 1) == 0);
         validate_ext_list(extlist_cache, 1);
     }
 
     SECTION("Allocate multiple extent blocks")
     {
-        REQUIRE(__ut_block_ext_prealloc(session->get_wt_session_impl(), 3) == 0);
+        REQUIRE(__ut_exlist_cache_ext_prealloc(session->get_wt_session_impl(), 3) == 0);
         validate_ext_list(extlist_cache, 3);
     }
 
     SECTION("Allocate blocks on existing cache")
     {
-        REQUIRE(__ut_block_ext_prealloc(session->get_wt_session_impl(), 3) == 0);
+        REQUIRE(__ut_exlist_cache_ext_prealloc(session->get_wt_session_impl(), 3) == 0);
         validate_ext_list(extlist_cache, 3);
 
-        REQUIRE(__ut_block_ext_prealloc(session->get_wt_session_impl(), 0) == 0);
+        REQUIRE(__ut_exlist_cache_ext_prealloc(session->get_wt_session_impl(), 0) == 0);
         validate_ext_list(extlist_cache, 3);
 
-        REQUIRE(__ut_block_ext_prealloc(session->get_wt_session_impl(), 2) == 0);
+        REQUIRE(__ut_exlist_cache_ext_prealloc(session->get_wt_session_impl(), 2) == 0);
         validate_ext_list(extlist_cache, 3);
 
-        REQUIRE(__ut_block_ext_prealloc(session->get_wt_session_impl(), 5) == 0);
+        REQUIRE(__ut_exlist_cache_ext_prealloc(session->get_wt_session_impl(), 5) == 0);
         validate_ext_list(extlist_cache, 5);
     }
 }
@@ -155,7 +155,7 @@ TEST_CASE("Block session: __wt_extlist_cache_ext_free", "[block_session_ext]")
         std::shared_ptr<mock_session> session_no_bm = mock_session::build_test_mock_session();
         WT_EXT *ext;
 
-        REQUIRE(__ut_block_ext_alloc(session_no_bm->get_wt_session_impl(), &ext) == 0);
+        REQUIRE(__ut_exlist_cache_ext_alloc(session_no_bm->get_wt_session_impl(), &ext) == 0);
         REQUIRE(ext != nullptr);
 
         __wt_extlist_cache_ext_free(session_no_bm->get_wt_session_impl(), &ext);
@@ -165,7 +165,7 @@ TEST_CASE("Block session: __wt_extlist_cache_ext_free", "[block_session_ext]")
     SECTION("Calling free with cache")
     {
         WT_EXT *ext;
-        REQUIRE(__ut_block_ext_alloc(session->get_wt_session_impl(), &ext) == 0);
+        REQUIRE(__ut_exlist_cache_ext_alloc(session->get_wt_session_impl(), &ext) == 0);
 
         __wt_extlist_cache_ext_free(session->get_wt_session_impl(), &ext);
 
@@ -174,7 +174,7 @@ TEST_CASE("Block session: __wt_extlist_cache_ext_free", "[block_session_ext]")
         validate_ext_list(extlist_cache, 1);
 
         WT_EXT *ext2;
-        REQUIRE(__ut_block_ext_alloc(session->get_wt_session_impl(), &ext2) == 0);
+        REQUIRE(__ut_exlist_cache_ext_alloc(session->get_wt_session_impl(), &ext2) == 0);
         __wt_extlist_cache_ext_free(session->get_wt_session_impl(), &ext2);
 
         REQUIRE(ext != nullptr);
@@ -201,26 +201,26 @@ TEST_CASE("Block session: __block_ext_discard", "[block_session_ext]")
     extlist_cache->ext_cache_cnt = 3;
     SECTION("Discard every item in extent list with 0 max items in the cache")
     {
-        REQUIRE(__ut_block_ext_discard(session->get_wt_session_impl(), 0) == 0);
+        REQUIRE(__ut_extlist_cache_ext_discard(session->get_wt_session_impl(), 0) == 0);
         validate_ext_list(extlist_cache, 0);
     }
 
     SECTION("Discard until only one item with 1 max item in extent list")
     {
-        REQUIRE(__ut_block_ext_discard(session->get_wt_session_impl(), 1) == 0);
+        REQUIRE(__ut_extlist_cache_ext_discard(session->get_wt_session_impl(), 1) == 0);
 
         validate_ext_list(extlist_cache, 1);
     }
 
     SECTION("Discard nothing in the extent list because cache already has 3 items")
     {
-        REQUIRE(__ut_block_ext_discard(session->get_wt_session_impl(), 3) == 0);
+        REQUIRE(__ut_extlist_cache_ext_discard(session->get_wt_session_impl(), 3) == 0);
         validate_ext_list(extlist_cache, 3);
     }
 
     SECTION("Fake cache count and discard everything in extent list with 0 max items in cache")
     {
         extlist_cache->ext_cache_cnt = 4;
-        REQUIRE(__ut_block_ext_discard(session->get_wt_session_impl(), 0) == WT_ERROR);
+        REQUIRE(__ut_extlist_cache_ext_discard(session->get_wt_session_impl(), 0) == WT_ERROR);
     }
 }

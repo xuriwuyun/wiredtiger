@@ -24,7 +24,7 @@ TEST_CASE("Block session: __block_size_alloc", "[block_session_size]")
 {
     WT_SIZE *sz = nullptr;
 
-    REQUIRE(__ut_block_size_alloc(nullptr, &sz) == 0);
+    REQUIRE(__ut_extlist_cache_size_alloc(nullptr, &sz) == 0);
     validate_and_free_size_block(sz);
 }
 
@@ -35,34 +35,34 @@ TEST_CASE("Block session: __block_size_prealloc", "[block_session_size]")
 
     SECTION("Allocate zero size blocks")
     {
-        REQUIRE(__ut_block_size_prealloc(session->get_wt_session_impl(), 0) == 0);
+        REQUIRE(__ut_extlist_cache_size_prealloc(session->get_wt_session_impl(), 0) == 0);
         validate_size_list(extlist_cache, 0);
     }
 
     SECTION("Allocate one size block")
     {
-        REQUIRE(__ut_block_size_prealloc(session->get_wt_session_impl(), 1) == 0);
+        REQUIRE(__ut_extlist_cache_size_prealloc(session->get_wt_session_impl(), 1) == 0);
         validate_size_list(extlist_cache, 1);
     }
 
     SECTION("Allocate multiple size blocks")
     {
-        REQUIRE(__ut_block_size_prealloc(session->get_wt_session_impl(), 3) == 0);
+        REQUIRE(__ut_extlist_cache_size_prealloc(session->get_wt_session_impl(), 3) == 0);
         validate_size_list(extlist_cache, 3);
     }
 
     SECTION("Allocate blocks on existing cache")
     {
-        REQUIRE(__ut_block_size_prealloc(session->get_wt_session_impl(), 3) == 0);
+        REQUIRE(__ut_extlist_cache_size_prealloc(session->get_wt_session_impl(), 3) == 0);
         validate_size_list(extlist_cache, 3);
 
-        REQUIRE(__ut_block_size_prealloc(session->get_wt_session_impl(), 0) == 0);
+        REQUIRE(__ut_extlist_cache_size_prealloc(session->get_wt_session_impl(), 0) == 0);
         validate_size_list(extlist_cache, 3);
 
-        REQUIRE(__ut_block_size_prealloc(session->get_wt_session_impl(), 2) == 0);
+        REQUIRE(__ut_extlist_cache_size_prealloc(session->get_wt_session_impl(), 2) == 0);
         validate_size_list(extlist_cache, 3);
 
-        REQUIRE(__ut_block_size_prealloc(session->get_wt_session_impl(), 5) == 0);
+        REQUIRE(__ut_extlist_cache_size_prealloc(session->get_wt_session_impl(), 5) == 0);
         validate_size_list(extlist_cache, 5);
     }
 }
@@ -160,7 +160,7 @@ TEST_CASE("Block session: __wti_extlist_cache_size_free", "[block_session_size]"
         std::shared_ptr<mock_session> session_no_bm = mock_session::build_test_mock_session();
         WT_SIZE *sz;
 
-        REQUIRE(__ut_block_size_alloc(session_no_bm->get_wt_session_impl(), &sz) == 0);
+        REQUIRE(__ut_extlist_cache_size_alloc(session_no_bm->get_wt_session_impl(), &sz) == 0);
         REQUIRE(sz != nullptr);
 
         __wti_extlist_cache_size_free(session_no_bm->get_wt_session_impl(), &sz);
@@ -171,7 +171,7 @@ TEST_CASE("Block session: __wti_extlist_cache_size_free", "[block_session_size]"
     SECTION("Calling free with cache")
     {
         WT_SIZE *sz = nullptr;
-        REQUIRE(__ut_block_size_alloc(session->get_wt_session_impl(), &sz) == 0);
+        REQUIRE(__ut_extlist_cache_size_alloc(session->get_wt_session_impl(), &sz) == 0);
 
         __wti_extlist_cache_size_free(session->get_wt_session_impl(), &sz);
 
@@ -180,7 +180,7 @@ TEST_CASE("Block session: __wti_extlist_cache_size_free", "[block_session_size]"
         validate_size_list(extlist_cache, 1);
 
         WT_SIZE *sz2 = nullptr;
-        REQUIRE(__ut_block_size_alloc(session->get_wt_session_impl(), &sz2) == 0);
+        REQUIRE(__ut_extlist_cache_size_alloc(session->get_wt_session_impl(), &sz2) == 0);
         __wti_extlist_cache_size_free(session->get_wt_session_impl(), &sz2);
 
         REQUIRE(sz != nullptr);
@@ -208,25 +208,25 @@ TEST_CASE("Block session: __block_size_discard", "[block_session_size]")
 
     SECTION("Discard every item in size list with 0 max items in the cache")
     {
-        REQUIRE(__ut_block_size_discard(session->get_wt_session_impl(), 0) == 0);
+        REQUIRE(__ut_extlist_cache_size_discard(session->get_wt_session_impl(), 0) == 0);
         validate_size_list(extlist_cache, 0);
     }
 
     SECTION("Discard until only one item with 1 max item in size list")
     {
-        REQUIRE(__ut_block_size_discard(session->get_wt_session_impl(), 1) == 0);
+        REQUIRE(__ut_extlist_cache_size_discard(session->get_wt_session_impl(), 1) == 0);
         validate_size_list(extlist_cache, 1);
     }
 
     SECTION("Discard nothing in the size list because cache already has 3 items")
     {
-        REQUIRE(__ut_block_size_discard(session->get_wt_session_impl(), 3) == 0);
+        REQUIRE(__ut_extlist_cache_size_discard(session->get_wt_session_impl(), 3) == 0);
         validate_size_list(extlist_cache, 3);
     }
 
     SECTION("Fake cache count and discard every item in size list")
     {
         extlist_cache->sz_cache_cnt = 4;
-        REQUIRE(__ut_block_size_discard(session->get_wt_session_impl(), 0) == WT_ERROR);
+        REQUIRE(__ut_extlist_cache_size_discard(session->get_wt_session_impl(), 0) == WT_ERROR);
     }
 }

@@ -2279,26 +2279,26 @@ static inline bool __wt_get_page_modify_ta(WT_SESSION_IMPL *session, WT_PAGE *pa
 #ifdef HAVE_UNITTEST
 extern int WT_CDECL __ut_txn_mod_compare(const void *a, const void *b)
   WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
-extern int __ut_block_ext_alloc(WT_SESSION_IMPL *session, WT_EXT **extp)
-  WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
-extern int __ut_block_ext_discard(WT_SESSION_IMPL *session, u_int max)
-  WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
-extern int __ut_block_ext_prealloc(WT_SESSION_IMPL *session, u_int max)
-  WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
 extern int __ut_block_extend(WT_SESSION_IMPL *session, WT_BLOCK *block, WT_EXTLIST *el,
   wt_off_t *offp, wt_off_t size) WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
-extern int __ut_block_manager_session_cleanup(WT_SESSION_IMPL *session)
-  WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
-extern int __ut_block_size_alloc(WT_SESSION_IMPL *session, WT_SIZE **szp)
-  WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
-extern int __ut_block_size_discard(WT_SESSION_IMPL *session, u_int max)
-  WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
-extern int __ut_block_size_prealloc(WT_SESSION_IMPL *session, u_int max)
-  WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
 extern int __ut_chunkcache_bitmap_alloc(WT_SESSION_IMPL *session, size_t *bit_index)
   WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
 extern int __ut_ckpt_mod_blkmod_entry(WT_SESSION_IMPL *session, WT_BLOCK_MODS *blk_mod,
   wt_off_t offset, wt_off_t len) WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
+extern int __ut_exlist_cache_ext_alloc(WT_SESSION_IMPL *session, WT_EXT **extp)
+  WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
+extern int __ut_exlist_cache_ext_prealloc(WT_SESSION_IMPL *session, u_int max)
+  WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
+extern int __ut_extlist_cache_ext_discard(WT_SESSION_IMPL *session, u_int max)
+  WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
+extern int __ut_extlist_cache_manager_session_cleanup(WT_SESSION_IMPL *session)
+  WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
+extern int __ut_extlist_cache_size_alloc(WT_SESSION_IMPL *session, WT_SIZE **szp)
+  WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
+extern int __ut_extlist_cache_size_discard(WT_SESSION_IMPL *session, u_int max)
+  WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
+extern int __ut_extlist_cache_size_prealloc(WT_SESSION_IMPL *session, u_int max)
+  WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
 extern int __ut_session_config_int(WT_SESSION_IMPL *session, const char *config)
   WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
 extern void __ut_chunkcache_bitmap_free(WT_SESSION_IMPL *session, size_t bit_index);
