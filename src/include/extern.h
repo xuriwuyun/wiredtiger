@@ -1718,7 +1718,6 @@ extern void __wti_blkcache_remove(WT_SESSION_IMPL *session, const uint8_t *addr,
 extern void __wti_block_ckpt_destroy(WT_SESSION_IMPL *session, WT_BLOCK_CKPT *ci);
 extern void __wti_block_configure_first_fit(WT_BLOCK *block, bool on);
 extern void __wti_block_ext_free(WT_SESSION_IMPL *session, WT_EXT **ext);
-extern void __wti_block_extlist_free(WT_SESSION_IMPL *session, WT_EXTLIST *el);
 extern void __wti_block_size_free(WT_SESSION_IMPL *session, WT_SIZE **sz);
 extern void __wti_bm_method_set(WT_BM *bm, bool readonly);
 extern void __wti_btcur_iterate_setup(WT_CURSOR_BTREE *cbt);
@@ -1729,6 +1728,7 @@ extern void __wti_connection_destroy(WT_CONNECTION_IMPL *conn);
 extern void __wti_cursor_reopen(WT_CURSOR *cursor, WT_DATA_HANDLE *dhandle);
 extern void __wti_cursor_set_key_notsup(WT_CURSOR *cursor, ...);
 extern void __wti_cursor_set_value_notsup(WT_CURSOR *cursor, ...);
+extern void __wti_extlist_free(WT_SESSION_IMPL *session, WT_EXTLIST *el);
 extern void __wti_free_ref(WT_SESSION_IMPL *session, WT_REF *ref, int page_type, bool free_pages);
 extern void __wti_free_ref_index(
   WT_SESSION_IMPL *session, WT_PAGE *page, WT_PAGE_INDEX *pindex, bool free_pages);

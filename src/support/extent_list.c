@@ -701,3 +701,28 @@ __wti_extlist_init(
     el->track_size = track_size;
     return (0);
 }
+
+/*
+ * __wti_extlist_free --
+ *     Discard an extent list.
+ */
+void
+__wti_extlist_free(WT_SESSION_IMPL *session, WT_EXTLIST *el)
+{
+    WT_EXT *ext, *next;
+    WT_SIZE *nszp, *szp;
+
+    __wt_free(session, el->name);
+
+    for (ext = el->off[0]; ext != NULL; ext = next) {
+        next = ext->next[0];
+        __wt_free(session, ext);
+    }
+    for (szp = el->sz[0]; szp != NULL; szp = nszp) {
+        nszp = szp->next[0];
+        __wt_free(session, szp);
+    }
+
+    /* Extent lists are re-used, clear them. */
+    WT_CLEAR(*el);
+}

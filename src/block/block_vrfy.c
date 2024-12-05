@@ -191,7 +191,7 @@ __wt_block_verify_end(WT_SESSION_IMPL *session, WT_BLOCK *block)
     block->verify_size = 0;
 
     /* Discard the accumulated allocation list. */
-    __wti_block_extlist_free(session, &block->verify_alloc);
+    __wti_extlist_free(session, &block->verify_alloc);
 
     /* Discard the fragment tracking lists. */
     block->frags = 0;
@@ -242,7 +242,7 @@ __wti_verify_ckpt_load(WT_SESSION_IMPL *session, WT_BLOCK *block, WT_BLOCK_CKPT 
     if (el->offset != WT_BLOCK_INVALID_OFFSET) {
         WT_RET(__wti_block_extlist_read(session, block, el, ci->file_size));
         WT_RET(__wti_extlist_merge(session, block->verify, el, &block->verify_alloc));
-        __wti_block_extlist_free(session, el);
+        __wti_extlist_free(session, el);
     }
     el = &ci->discard;
     if (el->offset != WT_BLOCK_INVALID_OFFSET) {
@@ -250,7 +250,7 @@ __wti_verify_ckpt_load(WT_SESSION_IMPL *session, WT_BLOCK *block, WT_BLOCK_CKPT 
         WT_EXT_FOREACH (ext, el->off)
             WT_RET(__wti_extlist_off_remove_overlap(
               session, block, &block->verify_alloc, ext->off, ext->size));
-        __wti_block_extlist_free(session, el);
+        __wti_extlist_free(session, el);
     }
 
     /*
@@ -263,7 +263,7 @@ __wti_verify_ckpt_load(WT_SESSION_IMPL *session, WT_BLOCK *block, WT_BLOCK_CKPT 
     el = &ci->avail;
     if (el->offset != WT_BLOCK_INVALID_OFFSET) {
         WT_RET(__wti_block_extlist_read(session, block, el, ci->file_size));
-        __wti_block_extlist_free(session, el);
+        __wti_extlist_free(session, el);
     }
 
     /*
