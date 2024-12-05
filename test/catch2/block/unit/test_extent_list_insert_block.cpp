@@ -107,7 +107,7 @@ TEST_CASE("Extent Lists: block_merge", "[extent_list]")
         int idx = 0;
         for (const off_size_expected &test : test_list) {
             /* Call. */
-            REQUIRE(__ut_block_merge(session, &block, &extlist, test.test_off_size.off,
+            REQUIRE(__wt_extlist_merge_int(session, &block, &extlist, test.test_off_size.off,
                       test.test_off_size.size) == 0);
             INFO("After " << idx << ". Insert/merge: " << &test.test_off_size);
 
@@ -172,7 +172,7 @@ TEST_CASE("Extent Lists: block_off_remove", "[extent_list]")
         /* Insert extents. */
         for (const off_size &to_insert : insert_list) {
             INFO("Insert: " << &to_insert);
-            REQUIRE(__ut_block_off_insert(session, &extlist, to_insert.off, to_insert.size) == 0);
+            REQUIRE(__wt_extlist_off_insert(session, &extlist, to_insert.off, to_insert.size) == 0);
         }
 
         extlist_print_off(extlist);
@@ -190,11 +190,11 @@ TEST_CASE("Extent Lists: block_off_remove", "[extent_list]")
             /* For testing, half request ext returned, and half do not. */
             if ((idx % 2) == 0)
                 /* Call. */
-                REQUIRE(__ut_block_off_remove(session, &block, &extlist, test.off, nullptr) == 0);
+                REQUIRE(__wt_extlist_off_remove(session, &block, &extlist, test.off, nullptr) == 0);
             else {
                 WT_EXT *ext = nullptr;
                 /* Call. */
-                REQUIRE(__ut_block_off_remove(session, &block, &extlist, test.off, &ext) == 0);
+                REQUIRE(__wt_extlist_off_remove(session, &block, &extlist, test.off, &ext) == 0);
                 REQUIRE(ext != nullptr);
                 __wt_extlist_cache_ext_free(session, &ext);
             }
@@ -278,7 +278,7 @@ TEST_CASE("Extent Lists: block_append", "[extent_list]")
         int idx = 0;
         for (const off_size_expected &test : test_list) {
             /* Call. */
-            REQUIRE(__ut_block_append(session, &block, &extlist, test.test_off_size.off,
+            REQUIRE(__wt_extlist_append(session, &block, &extlist, test.test_off_size.off,
                       test.test_off_size.size) == 0);
 
             INFO("After " << idx << ". Append: " << &test.test_off_size);

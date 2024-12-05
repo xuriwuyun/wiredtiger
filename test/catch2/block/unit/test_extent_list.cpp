@@ -223,7 +223,7 @@ TEST_CASE("Extent Lists: block_off_srch", "[extent_list]")
     {
         std::vector<WT_EXT *> head(WT_SKIP_MAXDEPTH, nullptr);
 
-        __ut_block_off_srch(&head[0], 0, &stack[0], false);
+        __wt_extlist_off_srch(&head[0], 0, &stack[0], false);
 
         for (int i = 0; i < WT_SKIP_MAXDEPTH; i++)
             REQUIRE(stack[i] == &head[i]);
@@ -240,7 +240,7 @@ TEST_CASE("Extent Lists: block_off_srch", "[extent_list]")
         head[1]->off = 2;
         head[2]->off = 3;
 
-        __ut_block_off_srch(&head[0], 2, &stack[0], false);
+        __wt_extlist_off_srch(&head[0], 2, &stack[0], false);
 
         /*
          * For each level of the extent list, if the searched-for element was visible, we should
@@ -262,7 +262,7 @@ TEST_CASE("Extent Lists: block_off_srch", "[extent_list]")
         head[1]->off = 2;
         head[2]->off = 3;
 
-        __ut_block_off_srch(&head[0], 4, &stack[0], false);
+        __wt_extlist_off_srch(&head[0], 4, &stack[0], false);
 
         REQUIRE(stack[0] == &head[2]->next[0]);
         REQUIRE(stack[1] == &head[2]->next[1]);
@@ -294,7 +294,7 @@ TEST_CASE("Extent Lists: block_off_srch", "[extent_list]")
         head[2]->off = 3;
         head[2]->depth = depth;
 
-        __ut_block_off_srch(&head[0], 2, &stack[0], true);
+        __wt_extlist_off_srch(&head[0], 2, &stack[0], true);
 
         /*
          * For each level of the extent list, if the searched-for element was visible, we should
@@ -319,7 +319,7 @@ TEST_CASE("Extent Lists: block_first_srch", "[extent_list]")
     {
         std::vector<WT_EXT *> head(WT_SKIP_MAXDEPTH, nullptr);
 
-        REQUIRE(__ut_block_first_srch(&head[0], 0, &stack[0]) == false);
+        REQUIRE(__wt_extlist_first_srch(&head[0], 0, &stack[0]) == false);
     }
 
     SECTION("list with too-small chunks doesn't yield a larger chunk")
@@ -333,7 +333,7 @@ TEST_CASE("Extent Lists: block_first_srch", "[extent_list]")
         head[1]->size = 2;
         head[2]->size = 3;
 
-        REQUIRE(__ut_block_first_srch(&head[0], 4, &stack[0]) == false);
+        REQUIRE(__wt_extlist_first_srch(&head[0], 4, &stack[0]) == false);
     }
 
     SECTION("find an appropriate chunk")
@@ -347,7 +347,7 @@ TEST_CASE("Extent Lists: block_first_srch", "[extent_list]")
         head[1]->size = 20;
         head[2]->size = 30;
 
-        REQUIRE(__ut_block_first_srch(&head[0], 4, &stack[0]) == true);
+        REQUIRE(__wt_extlist_first_srch(&head[0], 4, &stack[0]) == true);
     }
 }
 
@@ -359,7 +359,7 @@ TEST_CASE("Extent Lists: block_size_srch", "[extent_list]")
     {
         std::vector<WT_SIZE *> head(WT_SKIP_MAXDEPTH, nullptr);
 
-        __ut_block_size_srch(&head[0], 0, &stack[0]);
+        __wt_extlist_size_srch(&head[0], 0, &stack[0]);
 
         for (int i = 0; i < WT_SKIP_MAXDEPTH; i++)
             REQUIRE(stack[i] == &head[i]);
@@ -376,7 +376,7 @@ TEST_CASE("Extent Lists: block_size_srch", "[extent_list]")
         head[1]->size = 2;
         head[2]->size = 3;
 
-        __ut_block_size_srch(&head[0], 2, &stack[0]);
+        __wt_extlist_size_srch(&head[0], 2, &stack[0]);
 
         /*
          * For each level of the extent list, if the searched-for element was visible, we should
@@ -398,7 +398,7 @@ TEST_CASE("Extent Lists: block_size_srch", "[extent_list]")
         head[1]->size = 2;
         head[2]->size = 3;
 
-        __ut_block_size_srch(&head[0], 4, &stack[0]);
+        __wt_extlist_size_srch(&head[0], 4, &stack[0]);
 
         REQUIRE(stack[0] == &head[2]->next[0]);
         REQUIRE(stack[1] == &head[2]->next[1]);

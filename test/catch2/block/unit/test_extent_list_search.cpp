@@ -69,7 +69,7 @@ TEST_CASE("Extent Lists: block_off_srch_pair", "[extent_list]")
             WT_EXT *before = &dummy;
             WT_EXT *after = &dummy;
             /* Call. */
-            __ut_block_off_srch_pair(&extlist, test, &before, &after);
+            __wt_extlist_off_srch_pair(&extlist, test, &before, &after);
             /* Verify: All should be not found. */
             REQUIRE(before == nullptr);
             REQUIRE(after == nullptr);
@@ -105,7 +105,7 @@ TEST_CASE("Extent Lists: block_off_srch_pair", "[extent_list]")
         /* Insert extents. */
         for (const off_size &to_insert : insert_list) {
             INFO("Insert: " << &to_insert);
-            REQUIRE(__ut_block_off_insert(session, &extlist, to_insert.off, to_insert.size) == 0);
+            REQUIRE(__wt_extlist_off_insert(session, &extlist, to_insert.off, to_insert.size) == 0);
         }
 
         extlist_print_off(extlist);
@@ -117,7 +117,7 @@ TEST_CASE("Extent Lists: block_off_srch_pair", "[extent_list]")
             WT_EXT *before = &dummy;
             WT_EXT *after = &dummy;
             /* Call. */
-            __ut_block_off_srch_pair(&extlist, expected.off, &before, &after);
+            __wt_extlist_off_srch_pair(&extlist, expected.off, &before, &after);
 
             std::ostringstream line_stream;
             line_stream << "Verify: " << idx << ". off " << expected.off
@@ -227,7 +227,7 @@ TEST_CASE("Extent Lists: block_off_match", "[extent_list]")
         uint32_t idx = 0;
         for (const search_match &expected : expected_match) {
             /* Call. */
-            bool match = __ut_block_off_match(
+            bool match = __wt_extlist_off_match(
               &extlist, expected.test_off_size.off, expected.test_off_size.size);
 
             const char *match_str = match ? "true" : "false";
@@ -249,7 +249,7 @@ TEST_CASE("Extent Lists: block_off_match", "[extent_list]")
         /* Insert extents. */
         for (const off_size &to_insert : insert_list) {
             INFO("Insert: " << &to_insert);
-            REQUIRE(__ut_block_off_insert(session, &extlist, to_insert.off, to_insert.size) == 0);
+            REQUIRE(__wt_extlist_off_insert(session, &extlist, to_insert.off, to_insert.size) == 0);
         }
 
         extlist_print_off(extlist);
@@ -258,7 +258,7 @@ TEST_CASE("Extent Lists: block_off_match", "[extent_list]")
         uint32_t idx = 0;
         for (const search_match &expected : expected_match) {
             /* Call. */
-            bool match = __ut_block_off_match(
+            bool match = __wt_extlist_off_match(
               &extlist, expected.test_off_size.off, expected.test_off_size.size);
 
             const char *match_str = match ? "true" : "false";

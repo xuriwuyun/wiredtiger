@@ -43,7 +43,7 @@ TEST_CASE("Extent Lists: block_ext_insert", "[extent_list]")
         /* Insert one extent. */
         WT_EXT *first = alloc_new_ext(session, 4096, 4096);
         /* Call. */
-        REQUIRE(__ut_block_ext_insert(session, &extlist, first) == 0);
+        REQUIRE(__wt_extlist_ext_insert(session, &extlist, first) == 0);
 
         extlist_print_off(extlist);
 
@@ -79,7 +79,7 @@ TEST_CASE("Extent Lists: block_ext_insert", "[extent_list]")
         for (const off_size_expected &test : test_list) {
             WT_EXT *insert_ext = alloc_new_ext(session, test.test_off_size);
             /* Call. */
-            REQUIRE(__ut_block_ext_insert(session, &extlist, insert_ext) == 0);
+            REQUIRE(__wt_extlist_ext_insert(session, &extlist, insert_ext) == 0);
 
             INFO("After " << idx << ". Insert: " << &test.test_off_size);
             extlist_print_off(extlist);
@@ -111,7 +111,7 @@ TEST_CASE("Extent Lists: block_off_insert", "[extent_list]")
         /* Test. */
         /* Insert one extent. */
         /* Call. */
-        REQUIRE(__ut_block_off_insert(session, &extlist, 4096, 4096) == 0);
+        REQUIRE(__wt_extlist_off_insert(session, &extlist, 4096, 4096) == 0);
 
         extlist_print_off(extlist);
 
@@ -146,7 +146,7 @@ TEST_CASE("Extent Lists: block_off_insert", "[extent_list]")
         int idx = 0;
         for (const off_size_expected &test : test_list) {
             /* Call. */
-            REQUIRE(__ut_block_off_insert(
+            REQUIRE(__wt_extlist_off_insert(
                       session, &extlist, test.test_off_size.off, test.test_off_size.size) == 0);
 
             INFO("After " << idx << ". Insert: " << &test.test_off_size);
