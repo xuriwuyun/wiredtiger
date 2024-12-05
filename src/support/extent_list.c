@@ -487,3 +487,79 @@ __wti_extlist_off_remove_overlap(
     WT_ASSERT(session, off != WT_BLOCK_INVALID_OFFSET);
     return (__wt_extlist_off_remove_overlap(session, verify, el, off, size));
 }
+
+/*
+ * __wt_extlist_merge --
+ *     Insert an extent into an extent list, merging if possible (internal version).
+ */
+int
+__wt_extlist_merge(
+  WT_SESSION_IMPL *session, bool verify, WT_EXTLIST *el, wt_off_t off, wt_off_t size)
+{
+    WT_EXT *after, *before, *ext;
+
+    /*
+     * Retrieve the records preceding/following the offset. If the records are contiguous with the
+     * free'd offset, combine records.
+     */
+    __wt_extlist_off_srch_pair(el, off, &before, &after);
+    if (before != NULL) {
+        if (before->off + before->size > off)
+            WT_EXT_VERIFY_RET(session, verify, EINVAL,
+              "%s: existing range %" PRIdMAX "-%" PRIdMAX " overlaps with merge range %" PRIdMAX
+              "-%" PRIdMAX,
+              el->name, (intmax_t)before->off, (intmax_t)(before->off + before->size),
+              (intmax_t)off, (intmax_t)(off + size));
+        if (before->off + before->size != off)
+            before = NULL;
+    }
+    if (after != NULL) {
+        if (off + size > after->off) {
+            WT_EXT_VERIFY_RET(session, verify, EINVAL,
+              "%s: merge range %" PRIdMAX "-%" PRIdMAX " overlaps with existing range %" PRIdMAX
+              "-%" PRIdMAX,
+              el->name, (intmax_t)off, (intmax_t)(off + size), (intmax_t)after->off,
+              (intmax_t)(after->off + after->size));
+        }
+        if (off + size != after->off)
+            after = NULL;
+    }
+    if (before == NULL && after == NULL) {
+        __wt_verbose_debug2(session, WT_VERB_BLOCK, "%s: insert range %" PRIdMAX "-%" PRIdMAX,
+          el->name, (intmax_t)off, (intmax_t)(off + size));
+
+        return (__wt_extlist_off_insert(session, el, off, size));
+    }
+
+    /*
+     * If the "before" offset range abuts, we'll use it as our new record; if the "after" offset
+     * range also abuts, include its size and remove it from the system. Else, only the "after"
+     * offset range abuts, use the "after" offset range as our new record. In either case, remove
+     * the record we're going to use, adjust it and re-insert it.
+     */
+    if (before == NULL) {
+        WT_RET(__wt_extlist_off_remove(session, verify, el, after->off, &ext));
+
+        __wt_verbose_debug2(session, WT_VERB_BLOCK,
+          "%s: range grows from %" PRIdMAX "-%" PRIdMAX ", to %" PRIdMAX "-%" PRIdMAX, el->name,
+          (intmax_t)ext->off, (intmax_t)(ext->off + ext->size), (intmax_t)off,
+          (intmax_t)(off + ext->size + size));
+
+        ext->off = off;
+        ext->size += size;
+    } else {
+        if (after != NULL) {
+            size += after->size;
+            WT_RET(__wt_extlist_off_remove(session, verify, el, after->off, NULL));
+        }
+        WT_RET(__wt_extlist_off_remove(session, verify, el, before->off, &ext));
+
+        __wt_verbose_debug2(session, WT_VERB_BLOCK,
+          "%s: range grows from %" PRIdMAX "-%" PRIdMAX ", to %" PRIdMAX "-%" PRIdMAX, el->name,
+          (intmax_t)ext->off, (intmax_t)(ext->off + ext->size), (intmax_t)ext->off,
+          (intmax_t)(ext->off + ext->size + size));
+
+        ext->size += size;
+    }
+    return (__wt_extlist_ext_insert(session, el, ext));
+}

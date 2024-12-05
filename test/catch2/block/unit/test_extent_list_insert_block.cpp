@@ -10,7 +10,7 @@
  * [extent_list]: block_ext.c
  * Test extent list functions part 4.
  *
- * Test extent list insert/remove functions with block: __block_merge, __wt_extlist_off_remove,
+ * Test extent list insert/remove functions with block: __wt_extlist_merge, __wt_extlist_off_remove,
  * __block_extend, and __block_append.
  */
 
@@ -94,10 +94,10 @@ TEST_CASE("Extent Lists: block_merge", "[extent_list]")
 
         /* Setup. */
         WT_EXTLIST extlist = {};
-        extlist.name = const_cast<char *>("__block_merge");
+        extlist.name = const_cast<char *>("__wt_extlist_merge");
 
         WT_BLOCK block = {};
-        block.name = "__block_merge";
+        block.name = "__wt_extlist_merge";
         block.allocsize = 1024;
         block.size = 4096; // Description information.
 
