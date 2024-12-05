@@ -494,49 +494,6 @@ __block_ext_overlap(WT_SESSION_IMPL *session, WT_BLOCK *block, WT_EXTLIST *ael, 
 }
 
 /*
- * __wti_block_extlist_merge --
- *     Merge one extent list into another.
- */
-int
-__wti_block_extlist_merge(WT_SESSION_IMPL *session, bool verify, WT_EXTLIST *a, WT_EXTLIST *b)
-{
-    WT_EXT *ext;
-    WT_EXTLIST tmp;
-    u_int i;
-
-    /*
-     * We should hold the live lock here when running on the live checkpoint. But there is no easy
-     * way to determine if the checkpoint is live so we cannot assert the locking here.
-     */
-
-    __wt_verbose_debug2(session, WT_VERB_BLOCK, "merging %s into %s", a->name, b->name);
-
-    /*
-     * Sometimes the list we are merging is much bigger than the other: if so, swap the lists around
-     * to reduce the amount of work we need to do during the merge. The size lists have to match as
-     * well, so this is only possible if both lists are tracking sizes, or neither are.
-     */
-    if (a->track_size == b->track_size && a->entries > b->entries) {
-        tmp = *a;
-        a->bytes = b->bytes;
-        b->bytes = tmp.bytes;
-        a->entries = b->entries;
-        b->entries = tmp.entries;
-        for (i = 0; i < WT_SKIP_MAXDEPTH; i++) {
-            a->off[i] = b->off[i];
-            b->off[i] = tmp.off[i];
-            a->sz[i] = b->sz[i];
-            b->sz[i] = tmp.sz[i];
-        }
-    }
-
-    WT_EXT_FOREACH (ext, a->off)
-        WT_RET(__wt_extlist_merge(session, verify, b, ext->off, ext->size));
-
-    return (0);
-}
-
-/*
  * __block_append --
  *     Append a new entry to the allocation list.
  */
