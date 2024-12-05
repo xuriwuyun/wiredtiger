@@ -368,14 +368,14 @@ __wt_extlist_off_remove_overlap(
         b_size = ext->size - (a_size + size);
 
         if (a_size > 0) {
-            __wt_verbose_debug2(session, WT_VERB_BLOCK,
+            __wt_verbose_debug2(session, WT_VERB_EXTENT_LIST,
               "%s: %" PRIdMAX "-%" PRIdMAX " range shrinks to %" PRIdMAX "-%" PRIdMAX, el->name,
               (intmax_t)before->off, (intmax_t)before->off + (intmax_t)before->size,
               (intmax_t)(a_off), (intmax_t)(a_off + a_size));
         }
 
         if (b_size > 0) {
-            __wt_verbose_debug2(session, WT_VERB_BLOCK,
+            __wt_verbose_debug2(session, WT_VERB_EXTENT_LIST,
               "%s: %" PRIdMAX "-%" PRIdMAX " range shrinks to %" PRIdMAX "-%" PRIdMAX, el->name,
               (intmax_t)before->off, (intmax_t)before->off + (intmax_t)before->size,
               (intmax_t)(b_off), (intmax_t)(b_off + b_size));
@@ -395,7 +395,7 @@ __wt_extlist_off_remove_overlap(
         b_size = ext->size - (b_off - ext->off);
 
         if (b_size > 0)
-            __wt_verbose_debug2(session, WT_VERB_BLOCK,
+            __wt_verbose_debug2(session, WT_VERB_EXTENT_LIST,
               "%s: %" PRIdMAX "-%" PRIdMAX " range shrinks to %" PRIdMAX "-%" PRIdMAX, el->name,
               (intmax_t)after->off, (intmax_t)after->off + (intmax_t)after->size, (intmax_t)(b_off),
               (intmax_t)(b_off + b_size));
@@ -498,7 +498,7 @@ __wt_extlist_merge(
             after = NULL;
     }
     if (before == NULL && after == NULL) {
-        __wt_verbose_debug2(session, WT_VERB_BLOCK, "%s: insert range %" PRIdMAX "-%" PRIdMAX,
+        __wt_verbose_debug2(session, WT_VERB_EXTENT_LIST, "%s: insert range %" PRIdMAX "-%" PRIdMAX,
           el->name, (intmax_t)off, (intmax_t)(off + size));
 
         return (__wt_extlist_off_insert(session, el, off, size));
@@ -513,7 +513,7 @@ __wt_extlist_merge(
     if (before == NULL) {
         WT_RET(__wt_extlist_off_remove(session, verify, el, after->off, &ext));
 
-        __wt_verbose_debug2(session, WT_VERB_BLOCK,
+        __wt_verbose_debug2(session, WT_VERB_EXTENT_LIST,
           "%s: range grows from %" PRIdMAX "-%" PRIdMAX ", to %" PRIdMAX "-%" PRIdMAX, el->name,
           (intmax_t)ext->off, (intmax_t)(ext->off + ext->size), (intmax_t)off,
           (intmax_t)(off + ext->size + size));
@@ -527,7 +527,7 @@ __wt_extlist_merge(
         }
         WT_RET(__wt_extlist_off_remove(session, verify, el, before->off, &ext));
 
-        __wt_verbose_debug2(session, WT_VERB_BLOCK,
+        __wt_verbose_debug2(session, WT_VERB_EXTENT_LIST,
           "%s: range grows from %" PRIdMAX "-%" PRIdMAX ", to %" PRIdMAX "-%" PRIdMAX, el->name,
           (intmax_t)ext->off, (intmax_t)(ext->off + ext->size), (intmax_t)ext->off,
           (intmax_t)(ext->off + ext->size + size));
@@ -553,7 +553,7 @@ __wti_extlist_merge(WT_SESSION_IMPL *session, bool verify, WT_EXTLIST *a, WT_EXT
      * way to determine if the checkpoint is live so we cannot assert the locking here.
      */
 
-    __wt_verbose_debug2(session, WT_VERB_BLOCK, "merging %s into %s", a->name, b->name);
+    __wt_verbose_debug2(session, WT_VERB_EXTENT_LIST, "merging %s into %s", a->name, b->name);
 
     /*
      * Sometimes the list we are merging is much bigger than the other: if so, swap the lists around
@@ -697,10 +697,10 @@ __wt_extlist_dump(WT_SESSION_IMPL *session, bool verify_layout, WT_EXTLIST *el, 
     const char *sep;
 
     /*
-     * FIXME-WT-13797 Think about verbose messages. We don't want to dump messages for the block
-     * extents when debugging live restore and vice versa.
+     * CODE_CHANGE: We don't want to dump messages for the block extents when debugging live restore
+     * and vice versa, but I don't see a clean way to do this. Is this worth exploring?
      */
-    if (!verify_layout && !WT_VERBOSE_LEVEL_ISSET(session, WT_VERB_BLOCK, WT_VERBOSE_DEBUG_2))
+    if (!verify_layout && !WT_VERBOSE_LEVEL_ISSET(session, WT_VERB_EXTENT_LIST, WT_VERBOSE_DEBUG_2))
         return (0);
 
     WT_ERR(__wt_scr_alloc(session, 0, &t1));
@@ -708,7 +708,7 @@ __wt_extlist_dump(WT_SESSION_IMPL *session, bool verify_layout, WT_EXTLIST *el, 
         level = WT_VERBOSE_NOTICE;
     else
         level = WT_VERBOSE_DEBUG_2;
-    __wt_verbose_level(session, WT_VERB_BLOCK, level,
+    __wt_verbose_level(session, WT_VERB_EXTENT_LIST, level,
       "%s extent list %s, %" PRIu32 " entries, %s bytes", tag, el->name, el->entries,
       __wt_buf_set_size(session, el->bytes, true, t1));
 
@@ -732,7 +732,7 @@ __wt_extlist_dump(WT_SESSION_IMPL *session, bool verify_layout, WT_EXTLIST *el, 
             sep = ",";
         }
 
-    __wt_verbose_level(session, WT_VERB_BLOCK, level, "%s", (char *)t1->data);
+    __wt_verbose_level(session, WT_VERB_EXTENT_LIST, level, "%s", (char *)t1->data);
 
 done:
 err:

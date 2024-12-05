@@ -895,6 +895,7 @@ connection_runtime_config = [
             'configuration',
             'error_returns',
             'eviction',
+            'extent_list',
             'fileops',
             'generation',
             'handleops',
