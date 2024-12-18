@@ -913,7 +913,8 @@ __live_restore_handle_verify_hole_list(WT_SESSION_IMPL *session, WT_LIVE_RESTORE
 
     if (source_exist) {
         wt_off_t source_size;
-        WT_ERR(__live_restore_fs_backing_filename(&lr_fs->source, session, lr_fs->destination.home, name, &source_path));
+        WT_ERR(__live_restore_fs_backing_filename(
+          &lr_fs->source, session, lr_fs->destination.home, name, &source_path));
         WT_ERR(lr_fs->os_file_system->fs_open_file(lr_fs->os_file_system, (WT_SESSION *)session,
           source_path, lr_fh->file_type, 0, &source_fh));
         WT_ERR(lr_fs->os_file_system->fs_size(
