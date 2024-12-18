@@ -284,7 +284,7 @@ __live_restore_fs_directory_list_worker(WT_FILE_SYSTEM *fs, WT_SESSION *wt_sessi
     WT_ERR(lr_fs->os_file_system->fs_directory_list(
       lr_fs->os_file_system, wt_session, path_dest, prefix, &dirlist_dest, countp));
 
-    for (namep = dirlist_dest; *namep != NULL; namep++)
+    for (namep = dirlist_dest; ((namep != NULL) && (*namep != NULL)); namep++)
         if (namep != NULL && *namep != NULL &&
           !(strlen(*namep) >= strlen(".deleted") &&
             strcmp(*namep + strlen(*namep) - strlen(".deleted"), ".deleted") == 0)) {
@@ -302,7 +302,7 @@ __live_restore_fs_directory_list_worker(WT_FILE_SYSTEM *fs, WT_SESSION *wt_sessi
     WT_ERR(lr_fs->os_file_system->fs_directory_list(
       lr_fs->os_file_system, wt_session, path_src, prefix, &dirlist_src, countp));
 
-    for (namep = dirlist_src; *namep != NULL; namep++) {
+    for (namep = dirlist_src; ((namep != NULL) && (*namep != NULL)); namep++) {
         WT_ERR_NOTFOUND_OK(
           __live_restore_fs_has_file(lr_fs, &lr_fs->destination, session, *namep, &dest_exist),
           true);
