@@ -95,7 +95,7 @@ static const char *const uri_shadow = "shadow";
 static const char *const ckpt_file = "checkpoint_done";
 
 static bool backup_verify_immediately, backup_verify_quick;
-static bool columns, stress, use_backups, use_lazyfs, use_ts, verify_model;
+static bool columns, stress, use_backups, use_lazyfs, use_ts, verify_model, live_restore_backups;
 static uint32_t backup_force_stop_interval, backup_full_interval, backup_granularity_kb;
 
 static TEST_OPTS *opts, _opts;
@@ -125,13 +125,14 @@ extern char *__wt_optarg;
 #define ENV_CONFIG_ADD_EVICT_DIRTY ",eviction_dirty_target=20,eviction_dirty_trigger=90"
 #define ENV_CONFIG_ADD_STRESS ",timing_stress_for_test=[prepare_checkpoint_delay]"
 
-#define ENV_CONFIG_BASE                                       \
-    "cache_size=%" PRIu32                                     \
-    "M,create,"                                               \
-    "debug_mode=(table_logging=true,checkpoint_retention=5)," \
-    "eviction_updates_target=20,eviction_updates_trigger=90," \
-    "log=(enabled,file_max=10M,remove=%s),session_max=%d,"    \
+#define ENV_CONFIG_BASE                                          \
+    "cache_size=%" PRIu32                                        \
+    "M,create,"                                                  \
+    "debug_mode=(table_logging=true,checkpoint_retention=5),"    \
+    "eviction_updates_target=20,eviction_updates_trigger=90,"    \
+    "log=(enabled=false,file_max=10M,remove=%s),session_max=%d," \
     "statistics=(all),statistics_log=(wait=%d,json,on_close)"
+/* FIXME-WT-13792 Re-enable logging once it's supported with live restore. */
 
 #define ENV_CONFIG_ADD_TXNSYNC ",transaction_sync=(enabled,method=none)"
 #define ENV_CONFIG_ADD_TXNSYNC_FSYNC ",transaction_sync=(enabled,method=fsync)"
@@ -424,7 +425,7 @@ static void
 backup_create_incremental(WT_CONNECTION *conn, uint32_t src_index, uint32_t index)
 {
     int nfiles, nranges, nunmodified;
-    char backup_home[PATH_MAX];
+    char backup_home[PATH_MAX], backup_id[32];
 
     printf("Create incremental backup %" PRIu32 " - start: source=%" PRIu32 "\n", index, src_index);
     testutil_backup_create_incremental(conn, WT_HOME_DIR, (int)index, (int)src_index,
@@ -441,7 +442,11 @@ backup_create_incremental(WT_CONNECTION *conn, uint32_t src_index, uint32_t inde
     /* Immediately verify the backup. */
     if (backup_verify_immediately) {
         PRINT_BACKUP_VERIFY(index);
-        testutil_check(recover_and_verify(index, 0));
+        if (backup_verify_quick) {
+            testutil_snprintf(backup_id, sizeof(backup_id), "ID%" PRIu32, index);
+            testutil_verify_src_backup(conn, backup_home, WT_HOME_DIR, backup_id);
+        } else
+            testutil_check(recover_and_verify(index, 0));
         PRINT_BACKUP_VERIFY_DONE(index);
     }
 }
@@ -1021,6 +1026,47 @@ print_missing(REPORT *r, const char *fname, const char *msg)
 }
 
 /*
+ * backup_exists --
+ *     Check whether the backup with the given ID exists in the database.
+ */
+static bool
+backup_exists(WT_CONNECTION *conn, uint32_t index)
+{
+    WT_CURSOR *cursor;
+    WT_DECL_RET;
+    WT_SESSION *session;
+    char backup_id[64];
+    const char *idstr;
+    bool found;
+
+    testutil_snprintf(backup_id, sizeof(backup_id), "ID%" PRIu32, index);
+    testutil_check(conn->open_session(conn, NULL, NULL, &session));
+
+    /*
+     * Check if we find the backup with the given ID. But depending on scheduling of backups,
+     * checkpoints and killing the process, the backup ID may or may not have been saved to disk
+     * after a restart. If opening the backup query cursor gets EINVAL then there is no backup.
+     */
+    found = false;
+    ret = session->open_cursor(session, "backup:query_id", NULL, NULL, &cursor);
+    if (ret == EINVAL)
+        goto done;
+    testutil_check(ret);
+    while (cursor->next(cursor) == 0) {
+        testutil_check(cursor->get_key(cursor, &idstr));
+        if (strcmp(idstr, backup_id) == 0) {
+            found = true;
+            break;
+        }
+    }
+    testutil_check(cursor->close(cursor));
+
+done:
+    testutil_check(session->close(session, NULL));
+    return (found);
+}
+
+/*
  * backup_verify --
  *     Verify previous backups created within the given workload iteration (use 0 to verify all).
  */
@@ -1031,8 +1077,7 @@ backup_verify(WT_CONNECTION *conn, uint32_t workload_iteration)
     DIR *d;
     size_t len;
     uint32_t index;
-
-    WT_UNUSED(conn);
+    char backup_id[64];
 
     testutil_assert_errno((d = opendir(".")) != NULL);
     len = strlen(BACKUP_BASE);
@@ -1050,6 +1095,14 @@ backup_verify(WT_CONNECTION *conn, uint32_t workload_iteration)
             if (backup_verify_quick) {
                 /* Just check that chunks that are supposed to be different are indeed different. */
                 printf("Verify backup %" PRIu32 " (quick)\n", index);
+
+                /* Continue the verification only if we have the backup ID. */
+                if (backup_exists(conn, index)) {
+                    PRINT_BACKUP_VERIFY(index);
+                    testutil_snprintf(backup_id, sizeof(backup_id), "ID%" PRIu32, index);
+                    testutil_verify_src_backup(conn, dir->d_name, WT_HOME_DIR, backup_id);
+                    PRINT_BACKUP_VERIFY_DONE(index);
+                }
             } else {
                 /* Perform a full test. */
                 PRINT_BACKUP_VERIFY(index);
@@ -1082,7 +1135,8 @@ recover_and_verify(uint32_t backup_index, uint32_t workload_iteration)
     uint64_t commit_fp, durable_fp, stable_val;
     uint32_t i;
     int ret;
-    char backup_dir[PATH_MAX], buf[PATH_MAX], fname[64], kname[64], verify_dir[PATH_MAX];
+    char backup_dir[PATH_MAX], buf[PATH_MAX], fname[64], kname[64], verify_dir[PATH_MAX],
+      aux_dir[PATH_MAX], live_restore_cfg[PATH_MAX + 200];
     char ts_string[WT_TS_HEX_STRING_SIZE];
     bool fatal;
 
@@ -1096,8 +1150,26 @@ recover_and_verify(uint32_t backup_index, uint32_t workload_iteration)
      */
     if (backup_index == 0) {
         testutil_snprintf(verify_dir, sizeof(verify_dir), "%s", WT_HOME_DIR);
-        testutil_wiredtiger_open(opts, verify_dir, NULL, &reopen_event, &conn, true, false);
+
+        if (live_restore_backups) {
+            testutil_snprintf(aux_dir, sizeof(aux_dir), "%s_aux", verify_dir);
+            testutil_snprintf(
+              live_restore_cfg, sizeof(live_restore_cfg), "live_restore=(path=%s)", aux_dir);
+            testutil_copy(verify_dir, aux_dir);
+            testutil_wiredtiger_open(
+              opts, verify_dir, live_restore_cfg, &reopen_event, &conn, true, false);
+        } else {
+            testutil_wiredtiger_open(opts, verify_dir, NULL, &reopen_event, &conn, true, false);
+        }
+
         printf("Connection open and recovery complete. Verify content\n");
+        /* Compare against the copy of the home directory just before recovery. */
+        if (use_backups) {
+            printf("--- Verify saved dir against the backup source\n");
+            testutil_snprintf(buf, sizeof(buf), "%s.SAVE/%s", home, WT_HOME_DIR);
+            testutil_verify_src_backup(conn, buf, WT_HOME_DIR, NULL);
+            printf("--- DONE: Verify saved dir against the backup source\n");
+        }
         /*
          * Only call this when index is 0 because it calls back into here to verify a specific
          * backup.
@@ -1116,7 +1188,16 @@ recover_and_verify(uint32_t backup_index, uint32_t workload_iteration)
          * trying to create it would cause the test to abort as we currently allow only one
          * statistics thread at a time.
          */
-        testutil_wiredtiger_open(opts, verify_dir, NULL, &other_event, &conn, true, false);
+        if (live_restore_backups) {
+            testutil_snprintf(aux_dir, sizeof(aux_dir), "%s_aux", verify_dir);
+            testutil_snprintf(
+              live_restore_cfg, sizeof(live_restore_cfg), "live_restore=(path=%s)", aux_dir);
+            testutil_copy(verify_dir, aux_dir);
+            testutil_wiredtiger_open(
+              opts, verify_dir, live_restore_cfg, &other_event, &conn, true, false);
+        } else {
+            testutil_wiredtiger_open(opts, verify_dir, NULL, &other_event, &conn, true, false);
+        }
     }
 
     /* Sleep to guarantee the statistics thread has enough time to run. */
@@ -1407,10 +1488,12 @@ main(int argc, char *argv[])
     use_ts = true;
     verify_model = false;
     verify_only = false;
+    live_restore_backups = false;
 
     testutil_parse_begin_opt(argc, argv, SHARED_PARSE_OPTIONS, opts);
 
-    while ((ch = __wt_getopt(progname, argc, argv, "BcF:I:LlMsT:t:vz" SHARED_PARSE_OPTIONS)) != EOF)
+    while (
+      (ch = __wt_getopt(progname, argc, argv, "BcF:I:LlMsrT:t:vz" SHARED_PARSE_OPTIONS)) != EOF)
         switch (ch) {
         case 'B':
             use_backups = true;
@@ -1427,11 +1510,17 @@ main(int argc, char *argv[])
             if (num_iterations == 0)
                 num_iterations = 1;
             break;
+        case 'L':
+            table_pfx = "lsm";
+            break;
         case 'l':
             use_lazyfs = true;
             break;
         case 'M':
             verify_model = true;
+            break;
+        case 'r':
+            live_restore_backups = true;
             break;
         case 's':
             stress = true;
@@ -1695,6 +1784,8 @@ main(int argc, char *argv[])
         ret = recover_and_verify(0, 0);
     }
 
+    if (ret == EXIT_FAILURE)
+        return 361;
     /*
      * Clean up.
      */
