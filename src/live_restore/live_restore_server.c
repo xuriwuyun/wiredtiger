@@ -43,7 +43,7 @@ __live_restore_worker_stop(WT_SESSION_IMPL *session, WT_THREAD *ctx)
          */
         if (TAILQ_EMPTY(&server->work_queue)) {
             WT_STAT_CONN_SET(session, live_restore_state, WT_LIVE_RESTORE_COMPLETE);
-            __wt_verbose_debug1(session, WT_VERB_FILEOPS, "%s", "Live restore finished");
+            __wt_verbose_info(session, WT_VERB_FILEOPS, "%s", "Live restore finished");
         }
         /*
          * Future proofing: in general unless the conn is closing the queue must be empty if there
@@ -197,7 +197,7 @@ __live_restore_populate_queue(WT_SESSION_IMPL *session, uint64_t *work_count)
     WT_CURSOR *cursor;
     WT_RET(__wt_metadata_cursor(session, &cursor));
     WT_LIVE_RESTORE_WORK_ITEM *work_item = NULL;
-    __wt_verbose_debug1(
+    __wt_verbose_info(
       session, WT_VERB_FILEOPS, "%s", "Live restore server: Initializing the work queue");
 
     *work_count = 0;

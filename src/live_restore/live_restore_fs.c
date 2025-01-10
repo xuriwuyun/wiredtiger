@@ -689,7 +689,7 @@ __live_restore_fh_write_int(
 
     WT_ASSERT_ALWAYS(session, __wt_rwlock_islocked(session, &lr_fh->ext_lock),
       "Live restore lock not taken when needed");
-    __wt_verbose_debug1(
+    __wt_verbose_debug2(
       session, WT_VERB_FILEOPS, "WRITE %s: %" PRId64 ", %" WT_SIZET_FMT, fh->name, offset, len);
 
     WT_RET(lr_fh->destination.fh->fh_write(lr_fh->destination.fh, wt_session, offset, len, buf));
@@ -732,7 +732,7 @@ __live_restore_fh_read(
     lr_fh = (WT_LIVE_RESTORE_FILE_HANDLE *)fh;
     session = (WT_SESSION_IMPL *)wt_session;
 
-    __wt_verbose_debug1(
+    __wt_verbose_debug2(
       session, WT_VERB_FILEOPS, "READ %s : %" PRId64 ", %" WT_SIZET_FMT, fh->name, offset, len);
 
     read_data = (char *)buf;
