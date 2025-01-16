@@ -2641,14 +2641,14 @@ __conn_config_file_system(WT_SESSION_IMPL *session, const char *cfg[])
     bool live_restore_enabled = (bool)cval.val;
     if (live_restore_enabled) {
         /* Live restore compatibility checks. */
+#ifndef __linux__
+        WT_RET_MSG(session, EINVAL, "Live restore is only supported on Linux");
+#endif
         if (conn->file_system != NULL)
             WT_RET_MSG(session, EINVAL, "Live restore is not compatible with custom file systems");
         if (F_ISSET(conn, WT_CONN_IN_MEMORY))
             WT_RET_MSG(
               session, EINVAL, "Live restore is not compatible with an in-memory connections");
-#ifdef _MSC_VER
-        WT_RET_MSG(session, EINVAL, "Live restore is not supported on Windows");
-#endif
     }
 
     /*
@@ -2663,6 +2663,8 @@ __conn_config_file_system(WT_SESSION_IMPL *session, const char *cfg[])
         else {
 #if defined(_MSC_VER)
             WT_RET(__wt_os_win(session));
+#elif defined(__APPLE__)
+            WT_RET(__wt_os_posix(session, &conn->file_system));
 #else
             if (live_restore_enabled)
                 WT_RET(__wt_os_live_restore_fs(session, cfg, conn->home, &conn->file_system));

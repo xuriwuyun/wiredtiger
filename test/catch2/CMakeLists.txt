@@ -46,8 +46,8 @@ else()
     )
 endif()
 
-# Live restore is not supported on Windows
-if(NOT WT_WIN)
+# Live restore requires the use of ioctl fiemap which is only supported on Linux
+if(WT_LINUX)
     set(unittests live_restore/api/test_live_restore_fs_directory_list.cpp ${unittests})
     set(unittests live_restore/api/test_live_restore_fs_open_file.cpp ${unittests})
     set(unittests live_restore/unit/test_live_restore_extent_list.cpp ${unittests})
@@ -67,8 +67,8 @@ set(unittest_sources
     ${unittests}
 )
 
-# Live restore is not supported on Windows
-if(NOT WT_WIN)
+# Live restore requires the use of ioctl fiemap which is only supported on Linux
+if(WT_LINUX)
     set(unittest_sources
         live_restore/live_restore_test_env.cpp
         live_restore/utils_live_restore.cpp

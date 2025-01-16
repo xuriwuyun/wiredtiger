@@ -83,7 +83,6 @@ TEST_CASE("Live Restore Extent Lists: Creation", "[live_restore],[live_restore_e
     }
 
     // This test doesn't currently work on Macs
-#ifndef __APPLE__
     SECTION("The extent list can't have holes beyond the end of the source file")
     {
         // The following steps aren't a realistic scenario in Live Restore, but it gets
@@ -103,7 +102,6 @@ TEST_CASE("Live Restore Extent Lists: Creation", "[live_restore],[live_restore_e
         int ret = open_lr_fh(env, dest_file.c_str(), &lr_fh);
         REQUIRE(ret == EINVAL);
     }
-#endif
 
     SECTION("Open a backed, completely copied file")
     {
@@ -120,7 +118,6 @@ TEST_CASE("Live Restore Extent Lists: Creation", "[live_restore],[live_restore_e
     }
 
     // This test doesn't currently work on Macs
-#ifndef __APPLE__
     SECTION("Open a backed, partially copied file")
     {
         WTI_LIVE_RESTORE_FILE_HANDLE *lr_fh;
@@ -154,5 +151,4 @@ TEST_CASE("Live Restore Extent Lists: Creation", "[live_restore],[live_restore_e
 
         lr_fh->iface.close(reinterpret_cast<WT_FILE_HANDLE *>(lr_fh), wt_session);
     }
-#endif
 }

@@ -50,9 +50,8 @@ class test_live_restore02(wttest.WiredTigerTestCase):
         return val
 
     def test_live_restore02(self):
-        # Live restore is not supported on Windows.
-        if os.name == 'nt':
-            return
+        if os.name != 'posix' or os.uname()[0] != 'Linux':
+            self.skipTest('Live restore is only supported on Linux. Skipping test for ' + os.name)
 
         uris = ['file:foo', 'file:bar', 'file:cat']
         # Create a data set with a 3 collections to restore on restart.

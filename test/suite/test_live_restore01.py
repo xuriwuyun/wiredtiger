@@ -36,11 +36,11 @@ class test_live_restore01(wttest.WiredTigerTestCase):
         # Close the default connection.
         self.close_conn()
 
-        # Test that live restore connection will fail on windows.
-        if os.name == 'nt':
+        # Test that live restore connection will fail on operating systems other than Linux.
+        if os.name != 'Linux':
             self.assertRaisesWithMessage(wiredtiger.WiredTigerError,
                 lambda: self.open_conn(config="live_restore=(enabled=true,path=\".\")"),
-                "/Live restore is not supported on Windows/")
+                "/Live restore is only supported on Linux/")
             return
 
         # Open a valid connection.

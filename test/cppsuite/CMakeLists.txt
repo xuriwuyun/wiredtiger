@@ -52,11 +52,14 @@ create_test_executable(run
     CXX
 )
 
+# Live restore requires the use of ioctl fiemap which is only supported on Linux
+if(WT_LINUX)
 create_test_executable(test_live_restore
     SOURCES tests/test_live_restore.cpp
     LIBS cppsuite_test_harness
     CXX
 )
+endif()
 
 # If you prefer to not use the run binary you can add a test via this mechanism but it is generally
 # frowned upon.
