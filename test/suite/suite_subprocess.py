@@ -230,6 +230,7 @@ class suite_subprocess:
     # The tiered hook silently interjects tiered configuration and extensions,
     # these are not yet dealt with when running the external 'wt' process.
     @wttest.skip_for_hook("tiered", "runWt cannot add needed extensions")
+    @wttest.skip_for_hook("live_restore", "runWT needs to look in LR_DEST. TODO see if we can force this")
     def runWt(self, args, infilename=None,
         outfilename=None, errfilename=None, closeconn=True,
         reopensession=True, failure=False):

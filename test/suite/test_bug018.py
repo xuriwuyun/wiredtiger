@@ -37,6 +37,7 @@ import wiredtiger, wttest
 # each other.
 @wttest.skip_for_hook("nonstandalone", "fails for nonstandalone")
 @wttest.skip_for_hook("tiered", "Fails with tiered storage")
+@wttest.skip_for_hook("live_restore", "TODO - Try to fix for live restore? The other skips imply it doesn't play nice with hooks in general")
 class test_bug018(wttest.WiredTigerTestCase, suite_subprocess):
     '''Test closing/reopening/recovering tables when writes fail'''
 

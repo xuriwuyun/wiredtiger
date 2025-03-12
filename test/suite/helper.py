@@ -110,6 +110,10 @@ def confirm_nonempty(testcase, uri):
 # Copy a WT home directory.
 def copy_wiredtiger_home(testcase, olddir, newdir, aligned=True):
     # Unaligned copy requires 'dd', which may not be available on Windows.
+
+    if testcase.runningHook("live_restore"):
+        testcase.skipTest("TODO - figure out if we can cleanly insert LR_DEST path")
+
     if not aligned and os.name == "nt":
         raise AssertionError(
             'copy_wiredtiger_home: unaligned copy impossible on Windows')

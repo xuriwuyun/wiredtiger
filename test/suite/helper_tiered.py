@@ -28,6 +28,7 @@
 #
 
 import datetime, inspect, os, random, wiredtiger
+import wttest
 
 # These routines help run the various storage sources. They are required to manage
 # generation of storage source specific configurations.
@@ -182,6 +183,7 @@ def gen_tiered_storage_sources(random_prefix='', test_name='', tiered_only=False
     return tiered_storage_sources
 
 # This mixin class provides tiered storage configuration methods.
+@wttest.skip_for_hook("live_restore", "live restore is not compatible with tiered")
 class TieredConfigMixin:
     # Returns True if the current scenario is tiered.
     def is_tiered_scenario(self):

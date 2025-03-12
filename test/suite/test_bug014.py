@@ -33,6 +33,7 @@ from helper import copy_wiredtiger_home
 
 # test_bug014.py
 #    JIRA WT-2115: fast-delete pages can be incorrectly lost due to a crash.
+@wttest.skip_for_hook("live_restore", "TODO - try fix properly")
 class test_bug014(wttest.WiredTigerTestCase):
     key_format_values = [
         ('column', dict(key_format='r', value_format='S')),

@@ -2127,6 +2127,16 @@ tasks:
         vars:
           unit_test_args: -v 2 -R cursor13 schema03 timestamp22
 
+  - name: unit-test-hook-live-restore
+    tags: ["python"]
+    depends_on:
+    - name: compile
+    commands:
+      - func: "fetch artifacts"
+      - func: "unit test"
+        vars:
+          unit_test_args: -v 2 --hook live_restore
+
   - name: unit-test-hook-tiered
     tags: ["python"]
     depends_on:

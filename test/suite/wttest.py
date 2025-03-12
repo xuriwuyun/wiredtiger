@@ -424,6 +424,9 @@ class WiredTigerTestCase(abstract_test_case.AbstractWiredTigerTestCase):
         else:
             self.testsubdir = self.class_name() + '.' + str(self.__class__.wt_ntests)
         self.testdir = os.path.join(WiredTigerTestCase._parentTestdir, self.testsubdir)
+        if self.runningHook("live_restore"):
+            self.testdir += "/LR_DEST"
+
         self.__class__.wt_ntests += 1
         self.starttime = time.time()
         if WiredTigerTestCase._verbose > 2:
