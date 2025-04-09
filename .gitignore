@@ -4,6 +4,8 @@
 # Build directories
 .deps/
 .libs/
+build/
+.cache/
 
 # Build files
 *.dll

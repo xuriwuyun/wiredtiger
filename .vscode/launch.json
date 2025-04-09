@@ -1,0 +1,39 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug wt",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/root/wiredtiger/build/.libs/wt",
+            "args": [
+                "-h",
+                "/root/data", 
+                "-C",
+                "create,cache_size=7474M,session_max=33000,eviction=(threads_min=4,threads_max=4),config_base=false,statistics=(fast),log=(enabled=true,archive=true,path=journal,compressor=snappy),file_manager=(close_idle_time=100000,close_scan_interval=10,close_handle_minimum=250),statistics_log=(wait=0),verbose=[recovery_progress,checkpoint_progress,compact_progress]",
+                "dump",
+                "file:WiredTiger.wt"
+            ],
+            "stopAtEntry": false,
+            "cwd": "/root/wiredtiger/",
+            "environment": [
+                {
+                    "name": "LD_LIBRARY_PATH",
+                    "value": "/root/wiredtiger/build/.libs"
+                }
+            ],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        }
+    ]
+}
