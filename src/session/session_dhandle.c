@@ -483,8 +483,15 @@ __wt_session_get_dhandle(WT_SESSION_IMPL *session, const char *uri, const char *
 
         /* If the handle is open in the mode we want, we're done. */
         if (LF_ISSET(WT_DHANDLE_LOCK_ONLY) ||
-          (F_ISSET(dhandle, WT_DHANDLE_OPEN) && !LF_ISSET(WT_BTREE_SPECIAL_FLAGS)))
+          (F_ISSET(dhandle, WT_DHANDLE_OPEN) && !LF_ISSET(WT_BTREE_SPECIAL_FLAGS))){
+            if (WT_DHANDLE_BTREE(dhandle)) {
+                WT_BTREE *btree;
+
+                btree = dhandle->handle;
+                WT_ASSERT(session, btree != NULL);
+            }   
             break;
+        }
 
         WT_ASSERT(session, F_ISSET(dhandle, WT_DHANDLE_EXCLUSIVE));
 

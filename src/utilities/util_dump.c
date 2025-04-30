@@ -9,6 +9,7 @@
 #include <assert.h>
 #include "util.h"
 #include "util_dump.h"
+#include "wt_internal.h"
 
 #define STRING_MATCH_CONFIG(s, item) \
     (strncmp(s, (item).str, (item).len) == 0 && (s)[(item).len] == '\0')
@@ -52,6 +53,49 @@ usage(void)
 }
 
 static FILE *fp;
+
+int test(WT_SESSION_IMPL *session, WT_CURSOR_DUMP *cbt) {
+    WT_DECL_ITEM(tmp);
+    WT_DECL_RET;
+    //char *uri = "018181e4f56b137f8281e41546bd168381e4b2bf1ad0808080e22fc0cfc0";
+    char *uri = "018181e4f56b137f8281e41546bd168381e4b2bf1ad0808080e22fc0cfc0";
+    WT_RET(__wt_scr_alloc(session, 0, &tmp));
+    ret =__wt_nhex_to_raw(session, uri, 60, tmp);
+    fprintf(stdout, "checkpoint start--------\n");
+    for(int i = 0; i < tmp->size; i++) {
+        fprintf(stdout, "%02x ", ((uint8_t *)tmp->mem)[i]);
+    }
+    fprintf(stdout, "\ncheckpoint end--------\n");
+
+
+    WT_BLOCK_CKPT *ci, _ci;
+    WT_BLOCK   block;
+    block.allocsize=1;
+    WT_BTREE *btree = (WT_BTREE *)((WT_CURSOR_BTREE*) (cbt->child))->dhandle->handle;
+    ret =__wt_block_ckpt_unpack(session, &block, tmp->mem, tmp->size, &_ci);
+    fprintf(stdout, "root offset: %d\n", (int)_ci.root_offset);
+    fprintf(stdout, "root size: %d\n", (int)_ci.root_size);
+    fprintf(stdout, "root checksum: %d\n", (int)_ci.root_checksum);
+    fprintf(stdout, "file size: %d\n", (int)_ci.file_size);
+    fprintf(stdout, "alloc.bytes: %llu\n", (unsigned long long)_ci.alloc.bytes);
+    fprintf(stdout, "alloc.offset: %d\n", (int)_ci.alloc.offset);
+    fprintf(stdout, "alloc.size: %d\n", (int)_ci.alloc.size);
+    fprintf(stdout, "avail.bytes: %llu\n", (unsigned long long)_ci.avail.bytes);
+    fprintf(stdout, "avail.offset: %d\n", (int)_ci.avail.offset);
+    fprintf(stdout, "avail.size: %d\n", (int)_ci.avail.size);
+    fprintf(stdout, "discard.bytes: %llu\n", (unsigned long long)_ci.discard.bytes);
+    fprintf(stdout, "discard.offset: %d\n", (int)_ci.discard.offset);
+    fprintf(stdout, "discard.size: %d\n", (int)_ci.discard.size);
+    fprintf(stdout, "checkpoint list end--------\n ");
+
+
+    ret = __wt_buf_fmt(session, tmp, 
+      "[objectid(%" PRIu32 "): offset-end(%" PRIuMAX "-%" PRIuMAX "), size(%" PRIu32 "), bytes(%" PRIu64 "), checksum(%" PRIu32 "),]", _ci.alloc.objectid,
+      (uintmax_t)_ci.alloc.offset, (uintmax_t)_ci.alloc.offset + _ci.alloc.size, _ci.alloc.size, _ci.alloc.bytes, _ci.alloc.checksum);
+
+    fprintf(stdout, "alloc: %s\n", (const char *)tmp->data);
+    return 0;
+}
 
 int
 util_dump(WT_SESSION *session, int argc, char *argv[])
@@ -164,6 +208,8 @@ util_dump(WT_SESSION *session, int argc, char *argv[])
             goto err;
         }
 
+        test(session_impl, (WT_CURSOR_DUMP *)cursor);
+
         if ((simpleuri = strdup(uri)) == NULL) {
             (void)util_err(session, errno, NULL);
             goto err;
@@ -181,9 +227,12 @@ util_dump(WT_SESSION *session, int argc, char *argv[])
             /* Set the "ignore tombstone" flag on the underlying cursor. */
             F_SET(hs_dump_cursor->child, WT_CURSTD_IGNORE_TOMBSTONE);
         }
-        if (dump_config(session, simpleuri, cursor, pretty, hex, json) != 0)
-            goto err;
-
+//        if (dump_config(session, simpleuri, cursor, pretty, hex, json) != 0)
+//            goto err;
+//
+        WT_SESSION_IMPL *session_impl = (WT_SESSION_IMPL *)session;
+        //WT_BTREE *btree = S2BT(session_impl);
+        WT_BTREE *btree = (WT_BTREE *)((WT_CURSOR_BTREE *)cursor)->dhandle->handle;
         if (dump_record(cursor, reverse, json) != 0)
             goto err;
         if (json && dump_json_table_end(session) != 0)

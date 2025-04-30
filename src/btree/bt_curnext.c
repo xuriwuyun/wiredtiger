@@ -722,6 +722,7 @@ __wt_btcur_next_prefix(WT_CURSOR_BTREE *cbt, WT_ITEM *prefix, bool truncating)
     if (!F_ISSET(cbt, WT_CBT_ITERATE_NEXT))
         __wt_btcur_iterate_setup(cbt);
 
+    WT_BTREE *btree = S2BT(session);
     /*
      * Walk any page we're holding until the underlying call returns not-found. Then, move to the
      * next page, until we reach the end of the file.

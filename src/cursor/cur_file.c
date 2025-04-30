@@ -484,7 +484,12 @@ __curfile_close(WT_CURSOR *cursor)
     WT_SESSION_IMPL *session;
     bool dead, released;
 
+    WT_BTREE *btree ;
     cbt = (WT_CURSOR_BTREE *)cursor;
+    if (cursor->uri!=NULL && strcmp(cursor->uri, "file:WiredTigerHS.wt") != 0) {
+        if (cbt->dhandle != NULL)
+            btree = NULL;
+    }
     CURSOR_API_CALL_PREPARE_ALLOWED(cursor, session, close, CUR2BT(cbt));
     WT_ERR(__cursor_copy_release(cursor));
 err:

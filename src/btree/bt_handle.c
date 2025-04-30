@@ -802,10 +802,48 @@ __btree_preload(WT_SESSION_IMPL *session)
     btree = S2BT(session);
     bm = btree->bm;
 
+    __wt_verbose_worker(session, "-------root has %d children", btree->root.page->u.intl.__index->entries);
     /* Pre-load the second-level internal pages. */
     WT_INTL_FOREACH_BEGIN (session, btree->root.page, ref)
         if (__wt_ref_addr_copy(session, ref, &addr))
             WT_RET(bm->preload(bm, session, addr.addr, addr.size));
+    WT_INTL_FOREACH_END;
+
+
+    WT_ITEM dsk;
+    WT_PAGE *page;
+    WT_PAGE_HEADER *page_header;
+    int ret;
+
+    WT_INTL_FOREACH_BEGIN (session, btree->root.page, ref)
+        if (! __wt_ref_addr_copy(session, ref, &addr))
+            continue;
+        WT_CLEAR(dsk);
+        ret = __wt_bt_read(session, &dsk, addr.addr, addr.size);
+        if (ret != 0)
+            return (ret);
+        page_header = (WT_PAGE_HEADER *) dsk.data;
+        if (page_header->type ==WT_PAGE_ROW_INT) {
+            __wt_verbose_worker(session, "------ L2 internal page has %d entries", page_header->u.entries);
+            ret = __wt_page_inmem(session, NULL, dsk.data,
+              WT_DATA_IN_ITEM(&dsk) ? WT_PAGE_DISK_ALLOC : WT_PAGE_DISK_MAPPED, &page, NULL);
+            if (ret != 0)
+                return (ret);
+            dsk.mem = NULL;
+            WT_INTL_FOREACH_BEGIN(session, page, ref)
+                if (!__wt_ref_addr_copy(session, ref, &addr))
+                    continue;
+                WT_CLEAR(dsk);
+                ret = __wt_bt_read(session, &dsk, addr.addr, addr.size);
+                if (ret != 0)
+                    return (ret);
+                page_header = (WT_PAGE_HEADER *) dsk.data;
+                __wt_verbose_worker(session, "------ L3 leaf page has %d entries, type %d", page_header->u.entries, page_header->type);
+            WT_INTL_FOREACH_END;
+        } else if (page_header->type ==WT_PAGE_ROW_LEAF) {
+          __wt_verbose_worker(session, "------ L2 leaf page has %d entries", page_header->u.entries);
+        }
+
     WT_INTL_FOREACH_END;
     return (0);
 }
